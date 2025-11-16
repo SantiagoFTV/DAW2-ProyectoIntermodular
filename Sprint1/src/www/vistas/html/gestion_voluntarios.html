@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Voluntarios</title>
+    <link rel="stylesheet" href="<?php echo $config['dir_css']; ?>gestion_voluntarios.css">
+        <!-- Cargar CSS principal desde la ruta configurada en $config['dir_css'] -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="org-logo">
+                <i class="fas fa-utensils"></i>
+            </div>
+            <h1>Voluntarios y Horarios</h1>
+            <p>Gestión de Voluntarios - Juntos contra el hambre</p>
+        </header>
+
+        <!-- Mostrar mensajes -->
+        <?php if (isset($mensaje_vista) && !empty($mensaje_vista)): ?>
+            <div class="mensaje <?php echo isset($tipo_mensaje) && $tipo_mensaje == 'error' ? 'error' : ''; ?>">
+                <?php echo $mensaje_vista; ?>
+            </div>
+        <?php endif; ?>
+
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-number"><?php echo count($voluntarios_vista); ?></div>
+                <div class="stat-label">Voluntarios Activos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number"><?php echo array_sum(array_map(function($v) { return $v->getHorasDisponibles(); }, $voluntarios_vista)); ?></div>
+                <div class="stat-label">Horas Totales</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number"><?php echo count($voluntarios_vista) > 0 ? 'Sí' : 'No'; ?></div>
+                <div class="stat-label">Voluntarios Registrados</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Formulario para agregar voluntarios -->
+            <div class="form-container">
+                <h2 class="form-title"><i class="fas fa-user-plus"></i> Registrar Voluntario</h2>
+                <form method="POST" action="index.php?controlador=Voluntario&accion=crear">
+                    <div class="form-group">
+                        <label class="form-label" for="nombre">Nombre Completo *</label>
+                        <input type="text" id="nombre" name="nombre" class="form-input" placeholder="Ingresa el nombre completo" required value="<?php echo isset($_POST['nombre']) ? htmlspecialchars($_POST['nombre']) : ''; ?>">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="telefono">Teléfono *</label>
+                        <input type="tel" id="telefono" name="telefono" class="form-input" placeholder="Número de contacto" required value="<?php echo isset($_POST['telefono']) ? htmlspecialchars($_POST['telefono']) : ''; ?>">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="horas_disponibles">Horas Disponibles por Semana *</label>
+                        <input type="number" id="horas_disponibles" name="horas_disponibles" class="form-input" min="1" max="40" placeholder="Ej: 10" required value="<?php echo isset($_POST['horas_disponibles']) ? htmlspecialchars($_POST['horas_disponibles']) : ''; ?>">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="habilidades">Habilidades</label>
+                        <input type="text" id="habilidades" name="habilidades" class="form-input" placeholder="Separar con comas (cocina, logística, etc.)" value="<?php echo isset($_POST['habilidades']) ? htmlspecialchars($_POST['habilidades']) : ''; ?>">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Voluntario</button>
+                        <a href="index.php?controlador=Voluntario&accion=listar" class="btn btn-danger"><i class="fas fa-times"></i> Cancelar</a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Lista de voluntarios -->
+            <div class="table-container">
+                <h2 class="table-title"><i class="fas fa-users"></i> Voluntarios Registrados</h2>
+                
+                <?php if (empty($voluntarios_vista)): ?>
+                    <div class="empty-state">
+                        <i class="fas fa-users-slash"></i>
+                        <h3>No hay voluntarios registrados</h3>
+                        <p>Comienza agregando el primer voluntario usando el formulario.</p>
+                    </div>
+                <?php else: ?>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Teléfono</th>
+                                <th>Horas/Semana</th>
+                                <th>Habilidades</th>
+                                <th>Fecha Registro</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($voluntarios_vista as $voluntario): ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($voluntario->getId()); ?></td>
+                                    <td><?php echo htmlspecialchars($voluntario->getNombre()); ?></td>
+                                    <td><?php echo htmlspecialchars($voluntario->getTelefono()); ?></td>
+                                    <td><?php echo htmlspecialchars($voluntario->getHorasDisponibles()); ?> horas</td>
+                                    <td>
+                                        <?php 
+                                        $habilidades = $voluntario->getHabilidades();
+                                        echo $habilidades ? htmlspecialchars($habilidades) : 'Sin habilidades específicas';
+                                        ?>
+                                    </td>
+                                    <td><?php echo date('d/m/Y H:i', strtotime($voluntario->getFechaCreacion())); ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <footer>
+            <p>Ayuda Solidaria &copy; 2025 - Junto</p>
+            <p>Sistema de Gestión de Voluntarios - Base de datos: <?php echo $config['bd_nombre']; ?></p>
+        </footer>
+    </div>
+</body>
+</html>
