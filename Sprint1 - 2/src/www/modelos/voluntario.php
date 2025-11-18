@@ -57,7 +57,7 @@ class Voluntario {
             return $this->id;
 
         } catch (Exception $exception) {
-            throw new Exception("Error al guardar voluntario: " . $exception->getMessage());
+            throw new Exception("Error al guardar voluntario.php: " . $exception->getMessage());
         }
     }
 

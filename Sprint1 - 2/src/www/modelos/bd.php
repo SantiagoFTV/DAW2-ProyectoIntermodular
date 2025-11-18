@@ -24,7 +24,7 @@ class BD {
             // No imprimimos mensajes desde la clase de acceso a datos: mantenerla sin efectos secundarios
             
         } catch (PDOException $exception) {
-            throw new Exception("Error de conexión a la base de datos: " . $exception->getMessage());
+            throw new Exception("Error en bd.php: " . $exception->getMessage());
         }
     }
 

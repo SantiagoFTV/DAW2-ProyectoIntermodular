@@ -15,7 +15,8 @@ spl_autoload_register(function($clase) {
 });
 
 // Enrutamiento básico
-$accion = isset($_GET['accion']) ? $_GET['accion'] : 'listar';
+// Se acepta el parámetro GET `controlador` y `metodo`
+$metodo = isset($_GET['metodo']) ? $_GET['metodo'] : 'listar';
 $controlador = isset($_GET['controlador']) ? $_GET['controlador'] : 'Voluntario';
 
 $nombreControlador = 'Controlador' . ucfirst($controlador);
@@ -23,10 +24,10 @@ $nombreControlador = 'Controlador' . ucfirst($controlador);
 if (file_exists('./www/controladores/' . $nombreControlador . '.php')) {
     $controladorInstancia = new $nombreControlador($config);
     
-    if (method_exists($controladorInstancia, $accion)) {
-        $controladorInstancia->$accion();
+    if (method_exists($controladorInstancia, $metodo)) {
+        $controladorInstancia->$metodo();
     } else {
-        echo "Método $accion no encontrado en $nombreControlador";
+        echo "Método $metodo no encontrado en $nombreControlador";
     }
 } else {
     echo "Controlador $nombreControlador no encontrado";

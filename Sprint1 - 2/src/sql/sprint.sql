@@ -28,12 +28,13 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `voluntarios_db` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `nombre` varchar(255) NOT NULL,
   `telefono` int(11) NOT NULL,
   `horas_disponibles` varchar(255) NOT NULL,
-  `habilidades` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `habilidades` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `voluntarios_db`
@@ -50,22 +51,16 @@ INSERT INTO `voluntarios_db` (`id`, `nombre`, `telefono`, `horas_disponibles`, `
 --
 -- Indices de la tabla `voluntarios_db`
 --
-ALTER TABLE `voluntarios_db`
-  ADD PRIMARY KEY (`id`);
-
 --
 -- AUTO_INCREMENT de las tablas volcadas
 --
-
---
--- AUTO_INCREMENT de la tabla `voluntarios_db`
---
-ALTER TABLE `voluntarios_db`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-INSERT INTO voluntarios_db (nombre, telefono, horas_disponibles, habilidades, fecha_creacion) VALUES ('Asis', '765567766', 16, 'Bailar', '2025-11-18 12:04:31');
-INSERT INTO voluntarios_db (nombre, telefono, horas_disponibles, habilidades, fecha_creacion) VALUES ('Manuel', '654765456', 20, 'Cocinar', '2025-11-18 12:05:46');
+INSERT INTO `voluntarios_db` (`id`, `nombre`, `telefono`, `horas_disponibles`, `habilidades`) VALUES (22, 'Asis', '765567766', 16, 'Bailar');
+INSERT INTO `voluntarios_db` (`id`, `nombre`, `telefono`, `horas_disponibles`, `habilidades`) VALUES (23, 'Manuel', '654765456', 20, 'Cocinar');
+INSERT INTO `voluntarios_db` (`nombre`, `telefono`, `horas_disponibles`, `habilidades`) VALUES ('Arturo', '654765456', 17, 'Logistica');
+INSERT INTO voluntarios_db (nombre, telefono, horas_disponibles, habilidades, fecha_creacion) VALUES ('Arturo', '5685685', 16, 'Pensar', '2025-11-18 17:42:59');
+INSERT INTO voluntarios_db (nombre, telefono, horas_disponibles, habilidades, fecha_creacion) VALUES ('Arturo', '5685685', 16, 'Pensar', '2025-11-18 17:46:13');
