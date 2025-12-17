@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Puntos de Distribución</title>
+    <link rel="stylesheet" href="<?php echo $config['dir_css']; ?>gestion_puntos_distribucion.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="org-logo"><i class="fas fa-route"></i></div>
+            <h1>Puntos de Distribución</h1>
+            <p>Optimiza la cobertura geográfica y ubica rápidamente cada centro.</p>
+        </header>
+
+        <?php if (isset($mensaje_vista) && !empty($mensaje_vista)): ?>
+            <div class="mensaje <?php echo isset($tipo_mensaje) && $tipo_mensaje === 'error' ? 'error' : ''; ?>">
+                <?php echo $mensaje_vista; ?>
+            </div>
+        <?php endif; ?>
+
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-number"><?php echo count($puntos_vista); ?></div>
+                <div class="stat-label">Puntos Activos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number"><?php echo count(array_filter($puntos_vista, function($p){ return $p->getLatitud() !== null && $p->getLongitud() !== null && $p->getLatitud() !== '' && $p->getLongitud() !== ''; })); ?></div>
+                <div class="stat-label">Con coordenadas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number"><?php echo count($puntos_vista) > 0 ? date('d/m/Y H:i', strtotime($puntos_vista[0]->getCreatedAt() ?? date('Y-m-d H:i:s'))) : '-'; ?></div>
+                <div class="stat-label">Última alta</div>
+            </div>
+        </div>
+
+        <div class="layout">
+            <section class="map-panel">
+                <div class="map-header">
+                    <h2><i class="fas fa-map-marked-alt"></i> Mapa de centros</h2>
+                    <p>Selecciona un punto para ver detalles o navegar.</p>
+                </div>
+                <div class="map-frame">
+                    <iframe id="mapFrame" src="https://www.google.com/maps?q=Spain&output=embed" allowfullscreen loading="lazy"></iframe>
+                </div>
+                <div class="map-details" id="mapDetails">
+                    <div class="detail-title">Selecciona un punto</div>
+                    <div class="detail-body">Haz clic en "Ver en mapa" para centrar la ubicación y ver a la persona a cargo.</div>
+                </div>
+            </section>
+
+            <section class="form-panel">
+                <h2><i class="fas fa-plus-circle"></i> Registrar punto</h2>
+                <form method="POST" action="index.php?controlador=PuntoDistribucion&metodo=crear" class="form-grid">
+                    <label>
+                        Nombre del centro*
+                        <input type="text" name="nombre" required placeholder="Ej. Centro Norte" value="<?php echo isset($_POST['nombre']) ? htmlspecialchars($_POST['nombre']) : ''; ?>">
+                    </label>
+                    <label>
+                        Responsable*
+                        <input type="text" name="responsable" required placeholder="Persona a cargo" value="<?php echo isset($_POST['responsable']) ? htmlspecialchars($_POST['responsable']) : ''; ?>">
+                    </label>
+                    <label>
+                        Teléfono de contacto*
+                        <input type="text" name="telefono" required placeholder="Ej. +34 600 000 000" value="<?php echo isset($_POST['telefono']) ? htmlspecialchars($_POST['telefono']) : ''; ?>">
+                    </label>
+                    <label class="full">
+                        Dirección exacta*
+                        <textarea name="direccion" rows="2" required placeholder="Calle, ciudad, provincia"><?php echo isset($_POST['direccion']) ? htmlspecialchars($_POST['direccion']) : ''; ?></textarea>
+                    </label>
+                    <label>
+                        Latitud
+                        <input type="text" name="latitud" placeholder="Ej. 40.4168" value="<?php echo isset($_POST['latitud']) ? htmlspecialchars($_POST['latitud']) : ''; ?>">
+                    </label>
+                    <label>
+                        Longitud
+                        <input type="text" name="longitud" placeholder="Ej. -3.7038" value="<?php echo isset($_POST['longitud']) ? htmlspecialchars($_POST['longitud']) : ''; ?>">
+                    </label>
+                    <label>
+                        Horario
+                        <input type="text" name="horario" placeholder="Ej. Lun-Vie 9:00-18:00" value="<?php echo isset($_POST['horario']) ? htmlspecialchars($_POST['horario']) : ''; ?>">
+                    </label>
+                    <label class="full">
+                        Notas / descripción
+                        <textarea name="descripcion" rows="2" placeholder="Servicios, accesos, indicaciones"><?php echo isset($_POST['descripcion']) ? htmlspecialchars($_POST['descripcion']) : ''; ?></textarea>
+                    </label>
+                    <div class="form-actions">
+                        <button type="submit" class="btn primary"><i class="fas fa-save"></i> Guardar</button>
+                        <a class="btn ghost" href="index.php?controlador=PuntoDistribucion&metodo=listar"><i class="fas fa-undo"></i> Limpiar</a>
+                    </div>
+                </form>
+            </section>
+        </div>
+
+        <section class="table-panel">
+            <div class="table-header">
+                <h2><i class="fas fa-warehouse"></i> Centros registrados</h2>
+                <p>Consulta y localiza cada punto de distribución.</p>
+            </div>
+
+            <?php if (empty($puntos_vista)): ?>
+                <div class="empty-state">
+                    <i class="fas fa-map-pin"></i>
+                    <h3>No hay puntos registrados</h3>
+                    <p>Agrega el primero con el formulario para comenzar.</p>
+                </div>
+            <?php else: ?>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Centro</th>
+                            <th>Responsable</th>
+                            <th>Teléfono</th>
+                            <th>Horario</th>
+                            <th>Ubicación</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($puntos_vista as $punto): ?>
+                            <tr>
+                                <td>
+                                    <div class="cell-title"><?php echo htmlspecialchars($punto->getNombre()); ?></div>
+                                    <div class="cell-sub">Creado: <?php echo date('d/m/Y H:i', strtotime($punto->getCreatedAt())); ?></div>
+                                </td>
+                                <td><?php echo htmlspecialchars($punto->getResponsable()); ?></td>
+                                <td><?php echo htmlspecialchars($punto->getTelefono()); ?></td>
+                                <td><?php echo $punto->getHorario() ? htmlspecialchars($punto->getHorario()) : 'No indicado'; ?></td>
+                                <td>
+                                    <div class="cell-sub"><?php echo htmlspecialchars($punto->getDireccion()); ?></div>
+                                    <?php if ($punto->getLatitud() !== null && $punto->getLongitud() !== null && $punto->getLatitud() !== '' && $punto->getLongitud() !== ''): ?>
+                                        <div class="badge">Coordenadas</div>
+                                    <?php else: ?>
+                                        <div class="badge warning">Sin coordenadas</div>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <button class="btn small" data-nombre="<?php echo htmlspecialchars($punto->getNombre()); ?>" data-direccion="<?php echo htmlspecialchars($punto->getDireccion()); ?>" data-responsable="<?php echo htmlspecialchars($punto->getResponsable()); ?>" data-telefono="<?php echo htmlspecialchars($punto->getTelefono()); ?>" data-latitud="<?php echo htmlspecialchars($punto->getLatitud()); ?>" data-longitud="<?php echo htmlspecialchars($punto->getLongitud()); ?>" data-horario="<?php echo htmlspecialchars($punto->getHorario()); ?>" data-descripcion="<?php echo htmlspecialchars($punto->getDescripcion()); ?>">
+                                        <i class="fas fa-map-marker-alt"></i> Ver en mapa
+                                    </button>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+        </section>
+
+        <footer>
+            <p>Ayuda Solidaria &copy; 2025</p>
+            <p>Puntos de Distribución - Base de datos: <?php echo $config['bd_nombre']; ?></p>
+        </footer>
+    </div>
+
+    <?php
+        $puntos_json = json_encode(array_map(function($p) {
+            return array(
+                'nombre' => $p->getNombre(),
+                'direccion' => $p->getDireccion(),
+                'responsable' => $p->getResponsable(),
+                'telefono' => $p->getTelefono(),
+                'latitud' => $p->getLatitud(),
+                'longitud' => $p->getLongitud(),
+                'horario' => $p->getHorario(),
+                'descripcion' => $p->getDescripcion(),
+                'created_at' => $p->getCreatedAt()
+            );
+        }, $puntos_vista), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+    ?>
+    <?php echo '<script>window.puntosDistribucion = ' . ($puntos_json ?: '[]') . ';</script>'; ?>
+    <script src="./www/js/gestion_puntos_distribucion.js"></script>
+</body>
+</html>

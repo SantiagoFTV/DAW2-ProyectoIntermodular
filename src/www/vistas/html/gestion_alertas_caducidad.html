@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alertas de Caducidad</title>
+    <link rel="stylesheet" href="<?php echo $config['dir_css']; ?>gestion_alertas_caducidad.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="org-logo"><i class="fas fa-exclamation-triangle"></i></div>
+            <h1>Alertas de Caducidad</h1>
+            <p>Monitorea productos próximos a caducar y optimiza su distribución.</p>
+        </header>
+
+        <?php if (isset($mensaje_vista) && !empty($mensaje_vista)): ?>
+            <div class="mensaje <?php echo isset($tipo_mensaje) && $tipo_mensaje === 'error' ? 'error' : ''; ?>">
+                <?php echo $mensaje_vista; ?>
+            </div>
+        <?php endif; ?>
+
+        <!-- Estadísticas -->
+        <div class="stats-container">
+            <?php
+            require_once(__DIR__ . '/../../../config.php');
+            $alertas_criticas = 0;
+            $alertas_caducadas = 0;
+            $alertas_proximas = 0;
+            
+            if (isset($alertas_vista)) {
+                foreach ($alertas_vista as $alerta) {
+                    if ($alerta->getDiasRestantes() < 0) {
+                        $alertas_caducadas++;
+                    } elseif ($alerta->getDiasRestantes() <= 3) {
+                        $alertas_criticas++;
+                    } elseif ($alerta->getDiasRestantes() <= 15) {
+                        $alertas_proximas++;
+                    }
+                }
+            }
+            ?>
+            <div class="stat-card caducado">
+                <div class="stat-number"><?php echo $alertas_caducadas; ?></div>
+                <div class="stat-label">Caducados</div>
+            </div>
+            <div class="stat-card critico">
+                <div class="stat-number"><?php echo $alertas_criticas; ?></div>
+                <div class="stat-label">Críticos (≤3 días)</div>
+            </div>
+            <div class="stat-card urgente">
+                <div class="stat-number"><?php echo $alertas_proximas; ?></div>
+                <div class="stat-label">Próximos (≤15 días)</div>
+            </div>
+            <div class="stat-card ok">
+                <div class="stat-number"><?php echo isset($alertas_vista) ? count($alertas_vista) : 0; ?></div>
+                <div class="stat-label">Total de alertas</div>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filter-section">
+            <div class="filter-buttons">
+                <form method="GET" style="display: inline;">
+                    <input type="hidden" name="acciones" value="alertas">
+                    <button type="submit" name="filtro" value="todas" class="filter-btn <?php echo (!isset($filtro_actual) || $filtro_actual === 'todas') ? 'active' : ''; ?>">
+                        <i class="fas fa-list"></i> Todas
+                    </button>
+                    <button type="submit" name="filtro" value="criticas" class="filter-btn <?php echo (isset($filtro_actual) && $filtro_actual === 'criticas') ? 'active' : ''; ?>">
+                        <i class="fas fa-fire"></i> Críticas
+                    </button>
+                    <button type="submit" name="filtro" value="caducadas" class="filter-btn <?php echo (isset($filtro_actual) && $filtro_actual === 'caducadas') ? 'active' : ''; ?>">
+                        <i class="fas fa-ban"></i> Caducadas
+                    </button>
+                    <button type="submit" name="filtro" value="proximas" class="filter-btn <?php echo (isset($filtro_actual) && $filtro_actual === 'proximas') ? 'active' : ''; ?>">
+                        <i class="fas fa-clock"></i> Próximas
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="layout">
+            <!-- Panel de Registro -->
+            <section class="form-panel">
+                <div class="form-header">
+                    <h2><i class="fas fa-plus-circle"></i> Registrar Nueva Alerta</h2>
+                    <p>Añade productos próximos a caducar al sistema.</p>
+                </div>
+                <form method="POST" class="form-alertas">
+                    <input type="hidden" name="acciones" value="alertas">
+                    <input type="hidden" name="metodo" value="crear">
+                    
+                    <div class="form-group">
+                        <label for="nombre_producto">Nombre del producto *</label>
+                        <input type="text" id="nombre_producto" name="nombre_producto" placeholder="Ej: Leche entera" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="punto_distribucion_id">Punto de distribución *</label>
+                        <select id="punto_distribucion_id" name="punto_distribucion_id" required>
+                            <option value="">Selecciona un punto</option>
+                            <?php if (isset($puntos_vista) && !empty($puntos_vista)): ?>
+                                <?php foreach ($puntos_vista as $punto): ?>
+                                    <option value="<?php echo $punto->getId(); ?>">
+                                        <?php echo htmlspecialchars($punto->getNombre()); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cantidad">Cantidad *</label>
+                        <input type="number" id="cantidad" name="cantidad" placeholder="Ej: 50" min="1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fecha_caducidad">Fecha de caducidad *</label>
+                        <input type="date" id="fecha_caducidad" name="fecha_caducidad" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ubicacion">Ubicación en almacén *</label>
+                        <input type="text" id="ubicacion" name="ubicacion" placeholder="Ej: Estante A-3" required>
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i> Registrar Alerta
+                    </button>
+                </form>
+            </section>
+
+            <!-- Panel de Alertas -->
+            <section class="alerts-panel">
+                <div class="alerts-header">
+                    <h2><i class="fas fa-bell"></i> Alertas Registradas</h2>
+                    <p>Productos monitoreados en el sistema.</p>
+                </div>
+
+                <?php if (isset($alertas_vista) && !empty($alertas_vista)): ?>
+                    <div class="alerts-list">
+                        <?php foreach ($alertas_vista as $alerta): ?>
+                            <div class="alert-card estado-<?php echo $alerta->getEstado(); ?>">
+                                <div class="alert-header-card">
+                                    <div class="alert-icon">
+                                        <?php
+                                        $estado = $alerta->getEstado();
+                                        if ($estado === 'caducado') {
+                                            echo '<i class="fas fa-ban"></i>';
+                                        } elseif ($estado === 'critico') {
+                                            echo '<i class="fas fa-exclamation-circle"></i>';
+                                        } elseif ($estado === 'urgente') {
+                                            echo '<i class="fas fa-clock"></i>';
+                                        } elseif ($estado === 'proximo') {
+                                            echo '<i class="fas fa-info-circle"></i>';
+                                        } else {
+                                            echo '<i class="fas fa-check-circle"></i>';
+                                        }
+                                        ?>
+                                    </div>
+                                    <div class="alert-title">
+                                        <h3><?php echo htmlspecialchars($alerta->getNombreProducto()); ?></h3>
+                                        <span class="estado-badge estado-<?php echo $alerta->getEstado(); ?>">
+                                            <?php
+                                            $estado = $alerta->getEstado();
+                                            echo ucfirst($estado);
+                                            ?>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="alert-body">
+                                    <div class="alert-info">
+                                        <div class="info-item">
+                                            <strong>Caducidad:</strong>
+                                            <span><?php echo date('d/m/Y', strtotime($alerta->getFechaCaducidad())); ?></span>
+                                        </div>
+                                        <div class="info-item">
+                                            <strong>Días restantes:</strong>
+                                            <span class="dias-badge">
+                                                <?php 
+                                                $dias = $alerta->getDiasRestantes();
+                                                if ($dias < 0) {
+                                                    echo abs($dias) . ' días vencido';
+                                                } else {
+                                                    echo $dias . ' días';
+                                                }
+                                                ?>
+                                            </span>
+                                        </div>
+                                        <div class="info-item">
+                                            <strong>Cantidad:</strong>
+                                            <span><?php echo $alerta->getCantidad(); ?> unidades</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <strong>Ubicación:</strong>
+                                            <span><?php echo htmlspecialchars($alerta->getUbicacion()); ?></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="alert-footer">
+                                    <form method="POST" style="display: inline;">
+                                        <input type="hidden" name="acciones" value="alertas">
+                                        <input type="hidden" name="metodo" value="eliminar">
+                                        <input type="hidden" name="id" value="<?php echo $alerta->getId(); ?>">
+                                        <button type="submit" class="btn-danger" onclick="return confirm('¿Deseas eliminar esta alerta?');">
+                                            <i class="fas fa-trash-alt"></i> Eliminar
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php else: ?>
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>No hay alertas de caducidad registradas.</p>
+                    </div>
+                <?php endif; ?>
+            </section>
+        </div>
+    </div>
+
+    <script src="<?php echo $config['dir_js']; ?>gestion_alertas_caducidad.js"></script>
+</body>
+</html>

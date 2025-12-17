@@ -21,20 +21,12 @@
 | 9 | Optimización y paginación | Dev | 9.5h | ✅ |
 | 10 | Documentación y despliegue | DevOps | 11.5h | ✅ |
 
-**Total:** 95.5 horas | **Story Points:** 13
-
----
-
 ## Funcionalidades Implementadas
 
 ✅ Registrar nuevo voluntario  
 ✅ Listar todos los voluntarios  
 ✅ Editar información de voluntarios  
-✅ Eliminar voluntarios (con confirmación)  
-✅ Búsqueda y filtrado  
-✅ Validación de datos  
-✅ Paginación  
-✅ Diseño responsive  
+✅ Eliminar voluntarios (con confirmación)
 
 ---
 

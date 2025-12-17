@@ -15,9 +15,21 @@ spl_autoload_register(function($clase) {
 });
 
 // Enrutamiento básico
-// Se acepta el parámetro GET `controlador` y `metodo`
-$metodo = isset($_GET['metodo']) ? $_GET['metodo'] : 'listar';
-$controlador = isset($_GET['controlador']) ? $_GET['controlador'] : 'Voluntario';
+// Se acepta el parámetro GET/POST `acciones` (nuevo) o `controlador` (antiguo) y `metodo`
+$metodo = isset($_GET['metodo']) ? $_GET['metodo'] : (isset($_POST['metodo']) ? $_POST['metodo'] : 'listar');
+$acciones = isset($_GET['acciones']) ? $_GET['acciones'] : (isset($_POST['acciones']) ? $_POST['acciones'] : null);
+$controlador = isset($_GET['controlador']) ? $_GET['controlador'] : ($acciones ?? 'Voluntario');
+
+// Mapear acciones a controladores si se usa el parámetro 'acciones'
+$mapeoAcciones = [
+    'voluntarios' => 'Voluntario',
+    'puntos' => 'PuntoDistribucion',
+    'alertas' => 'AlertaCaducidad'
+];
+
+if ($acciones && isset($mapeoAcciones[$acciones])) {
+    $controlador = $mapeoAcciones[$acciones];
+}
 
 $nombreControlador = 'Controlador' . ucfirst($controlador);
 
