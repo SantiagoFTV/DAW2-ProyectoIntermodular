@@ -15,20 +15,35 @@ spl_autoload_register(function($clase) {
 });
 
 // Enrutamiento básico
-// Se acepta el parámetro GET/POST `acciones` (nuevo) o `controlador` (antiguo) y `metodo`
-$metodo = isset($_GET['metodo']) ? $_GET['metodo'] : (isset($_POST['metodo']) ? $_POST['metodo'] : 'listar');
-$acciones = isset($_GET['acciones']) ? $_GET['acciones'] : (isset($_POST['acciones']) ? $_POST['acciones'] : null);
-$controlador = isset($_GET['controlador']) ? $_GET['controlador'] : ($acciones ?? 'Voluntario');
+// Acepta: ?metodo=voluntarios o ?controlador=Voluntario&metodo=crear o ?controlador=Voluntario&accion=crear
+$metodoParam = isset($_GET['metodo']) ? $_GET['metodo'] : (isset($_POST['metodo']) ? $_POST['metodo'] : null);
+$accionParam = isset($_GET['accion']) ? $_GET['accion'] : (isset($_POST['accion']) ? $_POST['accion'] : null);
+$controladorParam = isset($_GET['controlador']) ? $_GET['controlador'] : (isset($_POST['controlador']) ? $_POST['controlador'] : null);
 
-// Mapear acciones a controladores si se usa el parámetro 'acciones'
-$mapeoAcciones = [
+// Mapeo de atajos a controladores
+$mapeoControladores = [
     'voluntarios' => 'Voluntario',
     'puntos' => 'PuntoDistribucion',
     'alertas' => 'AlertaCaducidad'
 ];
 
-if ($acciones && isset($mapeoAcciones[$acciones])) {
-    $controlador = $mapeoAcciones[$acciones];
+// Determinar el controlador
+if ($controladorParam) {
+    $controlador = $controladorParam;
+} elseif ($metodoParam && isset($mapeoControladores[$metodoParam])) {
+    $controlador = $mapeoControladores[$metodoParam];
+} else {
+    $controlador = 'Voluntario';
+}
+
+// Determinar la acción (acepta tanto 'metodo' como 'accion' cuando se usa con controlador)
+if ($accionParam) {
+    $accion = $accionParam;
+} elseif ($controladorParam && $metodoParam) {
+    // Si se usa ?controlador=X&metodo=Y, metodo es la acción
+    $accion = $metodoParam;
+} else {
+    $accion = 'listar';
 }
 
 $nombreControlador = 'Controlador' . ucfirst($controlador);
@@ -36,10 +51,10 @@ $nombreControlador = 'Controlador' . ucfirst($controlador);
 if (file_exists('./www/controladores/' . $nombreControlador . '.php')) {
     $controladorInstancia = new $nombreControlador($config);
     
-    if (method_exists($controladorInstancia, $metodo)) {
-        $controladorInstancia->$metodo();
+    if (method_exists($controladorInstancia, $accion)) {
+        $controladorInstancia->$accion();
     } else {
-        echo "Método $metodo no encontrado en $nombreControlador";
+        echo "Método $accion no encontrado en $nombreControlador";
     }
 } else {
     echo "Controlador $nombreControlador no encontrado";

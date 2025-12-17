@@ -44,7 +44,7 @@
             <!-- Formulario para agregar voluntarios -->
             <div class="form-container">
                 <h2 class="form-title"><i class="fas fa-user-plus"></i> Registrar Voluntario</h2>
-                <form method="POST" action="index.php?controlador=Voluntario&metodo=crear">
+                <form method="POST" action="index.php?controlador=Voluntario&accion=crear">
                     <div class="form-group">
                         <label class="form-label" for="nombre">Nombre Completo *</label>
                         <input type="text" id="nombre" name="nombre" class="form-input" placeholder="Ingresa el nombre completo" required value="<?php echo isset($_POST['nombre']) ? htmlspecialchars($_POST['nombre']) : ''; ?>">
@@ -63,7 +63,7 @@
                     </div>
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Voluntario</button>
-                        <a href="index.php?controlador=Voluntario&metodo=listar" class="btn btn-danger"><i class="fas fa-times"></i> Cancelar</a>
+                        <a href="index.php?controlador=Voluntario&accion=listar" class="btn btn-danger"><i class="fas fa-times"></i> Cancelar</a>
                     </div>
                 </form>
             </div>

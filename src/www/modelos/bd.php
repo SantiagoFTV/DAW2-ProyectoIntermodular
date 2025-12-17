@@ -47,5 +47,29 @@ class BD {
             throw new Exception("Error al seleccionar: " . $exception->getMessage());
         }
     }
+
+    public function actualizar($sql, $parametros = []) {
+        try {
+            $sentencia = $this->conexion->prepare($sql);
+            $sentencia->execute($parametros);
+            return $sentencia->rowCount();
+        } catch (PDOException $exception) {
+            throw new Exception("Error al actualizar: " . $exception->getMessage());
+        }
+    }
+
+    public function borrar($sql, $parametros = []) {
+        try {
+            $sentencia = $this->conexion->prepare($sql);
+            $sentencia->execute($parametros);
+            return $sentencia->rowCount();
+        } catch (PDOException $exception) {
+            throw new Exception("Error al borrar: " . $exception->getMessage());
+        }
+    }
+
+    public function __destruct() {
+        $this->conexion = null;
+    }
 }
 ?>

@@ -21,43 +21,26 @@ class Voluntario {
 
     public function guardar() {
         try {
-            // Guardar en el volcado SQL (archivo) en lugar de la base de datos
-            $destDir = __DIR__ . '/../../sql';
-            if (!is_dir($destDir)) {
-                mkdir($destDir, 0755, true);
-            }
-            $filePath = $destDir . '/sprint.sql';
-
-            // Normalizar y escapar valores para insertar en el archivo SQL
-            $nombre = addslashes(trim($this->nombre));
-            $telefono = addslashes(trim($this->telefono));
-            $horas = (int) $this->horas_disponibles;
-            $habilidades = is_null($this->habilidades) ? null : addslashes(trim($this->habilidades));
-
-            // Construir la sentencia INSERT (omitimos id para que la importación en MySQL lo genere)
-            $cols = ['nombre', 'telefono', 'horas_disponibles', 'habilidades', 'fecha_creacion'];
-            $fecha = date('Y-m-d H:i:s');
-            $valores = [];
-            $valores[] = "'{$nombre}'";
-            $valores[] = "'{$telefono}'";
-            $valores[] = (int) $horas;
-            $valores[] = is_null($habilidades) ? 'NULL' : "'{$habilidades}'";
-            $valores[] = "'{$fecha}'";
-
-            $insertSql = "INSERT INTO voluntarios_db (" . implode(', ', $cols) . ") VALUES (" . implode(', ', $valores) . ");" . PHP_EOL;
-
-            // Añadir al archivo (append)
-            $ok = file_put_contents($filePath, $insertSql, FILE_APPEND | LOCK_EX);
-            if ($ok === false) {
-                throw new Exception("No se pudo escribir en el archivo de volcado: $filePath");
-            }
-
-            // Devolver un identificador simbólico (timestamp) para la UI
-            $this->id = time();
+            $bd = new BD();
+            
+            // Insertar en la base de datos (sin fecha_creacion porque no existe en la tabla)
+            $sql = "INSERT INTO voluntarios_db (nombre, telefono, horas_disponibles, habilidades) 
+                    VALUES (:nombre, :telefono, :horas_disponibles, :habilidades)";
+            
+            $params = [
+                ':nombre' => $this->nombre,
+                ':telefono' => $this->telefono,
+                ':horas_disponibles' => $this->horas_disponibles,
+                ':habilidades' => $this->habilidades
+            ];
+            
+            $this->id = $bd->insertar($sql, $params);
+            $this->fecha_creacion = date('Y-m-d H:i:s');
+            
             return $this->id;
 
         } catch (Exception $exception) {
-            throw new Exception("Error al guardar voluntario.php: " . $exception->getMessage());
+            throw new Exception("Error al guardar voluntario: " . $exception->getMessage());
         }
     }
 
