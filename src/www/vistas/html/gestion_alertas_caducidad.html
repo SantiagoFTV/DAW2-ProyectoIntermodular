@@ -63,7 +63,7 @@
         <div class="filter-section">
             <div class="filter-buttons">
                 <form method="GET" style="display: inline;">
-                    <input type="hidden" name="acciones" value="alertas">
+                    <input type="hidden" name="metodo" value="alertas">
                     <button type="submit" name="filtro" value="todas" class="filter-btn <?php echo (!isset($filtro_actual) || $filtro_actual === 'todas') ? 'active' : ''; ?>">
                         <i class="fas fa-list"></i> Todas
                     </button>
@@ -88,8 +88,8 @@
                     <p>Añade productos próximos a caducar al sistema.</p>
                 </div>
                 <form method="POST" class="form-alertas">
-                    <input type="hidden" name="acciones" value="alertas">
-                    <input type="hidden" name="metodo" value="crear">
+                    <input type="hidden" name="metodo" value="alertas">
+                    <input type="hidden" name="accion" value="crear">
                     
                     <div class="form-group">
                         <label for="nombre_producto">Nombre del producto *</label>
@@ -202,8 +202,8 @@
 
                                 <div class="alert-footer">
                                     <form method="POST" style="display: inline;">
-                                        <input type="hidden" name="acciones" value="alertas">
-                                        <input type="hidden" name="metodo" value="eliminar">
+                                        <input type="hidden" name="metodo" value="alertas">
+                                        <input type="hidden" name="accion" value="eliminar">
                                         <input type="hidden" name="id" value="<?php echo $alerta->getId(); ?>">
                                         <button type="submit" class="btn-danger" onclick="return confirm('¿Deseas eliminar esta alerta?');">
                                             <i class="fas fa-trash-alt"></i> Eliminar

@@ -53,7 +53,7 @@
 
             <section class="form-panel">
                 <h2><i class="fas fa-plus-circle"></i> Registrar punto</h2>
-                <form method="POST" action="index.php?controlador=PuntoDistribucion&metodo=crear" class="form-grid">
+                <form method="POST" action="index.php?controlador=PuntoDistribucion&accion=crear" class="form-grid">
                     <label>
                         Nombre del centro*
                         <input type="text" name="nombre" required placeholder="Ej. Centro Norte" value="<?php echo isset($_POST['nombre']) ? htmlspecialchars($_POST['nombre']) : ''; ?>">
@@ -88,7 +88,7 @@
                     </label>
                     <div class="form-actions">
                         <button type="submit" class="btn primary"><i class="fas fa-save"></i> Guardar</button>
-                        <a class="btn ghost" href="index.php?controlador=PuntoDistribucion&metodo=listar"><i class="fas fa-undo"></i> Limpiar</a>
+                        <a class="btn ghost" href="index.php?controlador=PuntoDistribucion&accion=listar"><i class="fas fa-undo"></i> Limpiar</a>
                     </div>
                 </form>
             </section>

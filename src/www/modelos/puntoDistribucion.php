@@ -51,41 +51,10 @@ class PuntoDistribucion {
             $this->id = $bd->insertar($sql, $params);
             $this->created_at = date('Y-m-d H:i:s');
 
-            $this->agregarAlDump();
             return $this->id;
         } catch (Throwable $exception) {
             throw new Exception("Error al guardar punto de distribución: " . $exception->getMessage());
         }
-    }
-
-    private function agregarAlDump() {
-        $destDir = __DIR__ . '/../../sql';
-        if (!is_dir($destDir)) {
-            mkdir($destDir, 0755, true);
-        }
-        $filePath = $destDir . '/sprint.sql';
-
-        $valores = [
-            addslashes(trim($this->nombre)),
-            addslashes(trim($this->direccion)),
-            addslashes(trim($this->responsable)),
-            addslashes(trim($this->telefono)),
-            is_null($this->latitud) || $this->latitud === '' ? 'NULL' : $this->latitud,
-            is_null($this->longitud) || $this->longitud === '' ? 'NULL' : $this->longitud,
-            addslashes(trim($this->horario)),
-            is_null($this->descripcion) || $this->descripcion === '' ? 'NULL' : addslashes(trim($this->descripcion)),
-            $this->created_at ?? date('Y-m-d H:i:s')
-        ];
-
-        $sql = "INSERT INTO puntos_distribucion (nombre, direccion, responsable, telefono, latitud, longitud, horario, descripcion, created_at) VALUES (";
-        $sql .= "'{$valores[0]}', '{$valores[1]}', '{$valores[2]}', '{$valores[3]}', ";
-        $sql .= ($valores[4] === 'NULL' ? 'NULL' : $valores[4]) . ", ";
-        $sql .= ($valores[5] === 'NULL' ? 'NULL' : $valores[5]) . ", ";
-        $sql .= "'{$valores[6]}', " . ($valores[7] === 'NULL' ? 'NULL' : "'{$valores[7]}'") . ", ";
-        $sql .= "'{$valores[8]}'";
-        $sql .= ");" . PHP_EOL;
-
-        file_put_contents($filePath, $sql, FILE_APPEND | LOCK_EX);
     }
 
     public static function listar() {
