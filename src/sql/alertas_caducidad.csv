@@ -1,7 +1,5 @@
 id,nombre_producto,punto_distribucion_id,cantidad,fecha_caducidad,ubicacion,estado,created_at
-1,Leche Entera,1,20,2025-12-11,Estante A-1,critico,2025-12-09 10:00:00
-2,Pan Integral,1,15,2025-12-10,Estante A-2,critico,2025-12-09 10:00:00
-3,Yogur Natural,1,30,2025-12-14,Estante B-1,urgente,2025-12-09 10:00:00
-4,Queso Fresco,1,10,2025-12-19,Estante B-2,proximo,2025-12-09 10:00:00
-5,Mantequilla,1,12,2025-12-25,Estante C-1,ok,2025-12-09 10:00:00
-6,Huevos,1,100,2025-12-12,Estante C-2,urgente,2025-12-09 10:00:00
+2,"Pan Integral",1,15,2025-12-10,"Estante A-2",critico,"2025-12-09 10:00:00"
+4,"Queso Fresco",1,10,2025-12-19,"Estante B-2",proximo,"2025-12-09 10:00:00"
+5,Mantequilla,1,12,2025-12-25,"Estante C-1",ok,"2025-12-09 10:00:00"
+6,Huevos,1,100,2025-12-12,"Estante C-2",urgente,"2025-12-09 10:00:00"

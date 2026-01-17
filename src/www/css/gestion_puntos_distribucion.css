@@ -1,15 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
 :root {
-    --bg: #f7f9fc;
+    --bg: #f5faf8;
     --card: #ffffff;
-    --primary: #2563eb;
-    --primary-soft: #e8eeff;
-    --text: #0f172a;
+    --primary: #2F855A;
+    --primary-soft: #F0FAF4;
+    --text: #1f2937;
     --muted: #6b7280;
-    --border: #e5e7eb;
-    --accent: #10b981;
-    --warning: #d97706;
+    --border: #d1f2e8;
+    --accent: #68D391;
+    --warning: #68D391;
 }
 
 * { box-sizing: border-box; }

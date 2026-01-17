@@ -6,9 +6,104 @@
     <title>Gestión de Puntos de Distribución</title>
     <link rel="stylesheet" href="<?php echo $config['dir_css']; ?>gestion_puntos_distribucion.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .menu-return { display: flex; justify-content: flex-end; margin: 12px 0 6px; }
+        .menu-return .btn { box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
+        
+        .navbar {
+            background: linear-gradient(135deg, #2F855A 0%, #276749 100%);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .user-info .role {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .btn-logout {
+            background: #f8d7da;
+            color: #721c24;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .btn-logout:hover {
+            background: #f5c6cb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(114,28,36,0.2);
+        }
+    </style>
 </head>
 <body>
+    <?php
+    require_once(__DIR__ . '/../../modelos/Sesion.php');
+    Sesion::iniciarSesion();
+    
+    $usuario = Sesion::obtenerUsuario();
+    $rol = Sesion::obtenerRol();
+    $esAdmin = Sesion::esAdmin();
+    ?>
+
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <i class="fas fa-apple"></i> Sistema de Donaciones
+        </div>
+        <div class="navbar-user">
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <span><?php echo htmlspecialchars($usuario); ?></span>
+                <span class="role"><?php echo $esAdmin ? '👑 Admin' : '👤 Usuario'; ?></span>
+            </div>
+            <a href="index.php?controlador=Auth&metodo=logout" class="btn-logout">
+                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+            </a>
+        </div>
+    </nav>
+
     <div class="container">
+        <div class="menu-return">
+            <a class="btn ghost" href="index.php?controlador=Home&metodo=index" style="display:inline-flex; align-items:center; gap:6px;">
+                <i class="fas fa-house"></i> Volver al menú
+            </a>
+        </div>
         <header>
             <div class="org-logo"><i class="fas fa-route"></i></div>
             <h1>Puntos de Distribución</h1>
@@ -25,10 +120,6 @@
             <div class="stat-card">
                 <div class="stat-number"><?php echo count($puntos_vista); ?></div>
                 <div class="stat-label">Puntos Activos</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number"><?php echo count(array_filter($puntos_vista, function($p){ return $p->getLatitud() !== null && $p->getLongitud() !== null && $p->getLatitud() !== '' && $p->getLongitud() !== ''; })); ?></div>
-                <div class="stat-label">Con coordenadas</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number"><?php echo count($puntos_vista) > 0 ? date('d/m/Y H:i', strtotime($puntos_vista[0]->getCreatedAt() ?? date('Y-m-d H:i:s'))) : '-'; ?></div>
@@ -51,6 +142,7 @@
                 </div>
             </section>
 
+            <?php if ($esAdmin): ?>
             <section class="form-panel">
                 <h2><i class="fas fa-plus-circle"></i> Registrar punto</h2>
                 <form method="POST" action="index.php?controlador=PuntoDistribucion&metodo=crear" class="form-grid">
@@ -71,14 +163,6 @@
                         <textarea name="direccion" rows="2" required placeholder="Calle, ciudad, provincia"><?php echo isset($_POST['direccion']) ? htmlspecialchars($_POST['direccion']) : ''; ?></textarea>
                     </label>
                     <label>
-                        Latitud
-                        <input type="text" name="latitud" placeholder="Ej. 40.4168" value="<?php echo isset($_POST['latitud']) ? htmlspecialchars($_POST['latitud']) : ''; ?>">
-                    </label>
-                    <label>
-                        Longitud
-                        <input type="text" name="longitud" placeholder="Ej. -3.7038" value="<?php echo isset($_POST['longitud']) ? htmlspecialchars($_POST['longitud']) : ''; ?>">
-                    </label>
-                    <label>
                         Horario
                         <input type="text" name="horario" placeholder="Ej. Lun-Vie 9:00-18:00" value="<?php echo isset($_POST['horario']) ? htmlspecialchars($_POST['horario']) : ''; ?>">
                     </label>
@@ -92,7 +176,7 @@
                     </div>
                 </form>
             </section>
-        </div>
+            <?php endif; ?>
 
         <section class="table-panel">
             <div class="table-header">
@@ -130,16 +214,19 @@
                                 <td><?php echo $punto->getHorario() ? htmlspecialchars($punto->getHorario()) : 'No indicado'; ?></td>
                                 <td>
                                     <div class="cell-sub"><?php echo htmlspecialchars($punto->getDireccion()); ?></div>
-                                    <?php if ($punto->getLatitud() !== null && $punto->getLongitud() !== null && $punto->getLatitud() !== '' && $punto->getLongitud() !== ''): ?>
-                                        <div class="badge">Coordenadas</div>
-                                    <?php else: ?>
-                                        <div class="badge warning">Sin coordenadas</div>
-                                    <?php endif; ?>
                                 </td>
                                 <td>
-                                    <button class="btn small" data-nombre="<?php echo htmlspecialchars($punto->getNombre()); ?>" data-direccion="<?php echo htmlspecialchars($punto->getDireccion()); ?>" data-responsable="<?php echo htmlspecialchars($punto->getResponsable()); ?>" data-telefono="<?php echo htmlspecialchars($punto->getTelefono()); ?>" data-latitud="<?php echo htmlspecialchars($punto->getLatitud()); ?>" data-longitud="<?php echo htmlspecialchars($punto->getLongitud()); ?>" data-horario="<?php echo htmlspecialchars($punto->getHorario()); ?>" data-descripcion="<?php echo htmlspecialchars($punto->getDescripcion()); ?>">
+                                    <button class="btn small" data-nombre="<?php echo htmlspecialchars($punto->getNombre()); ?>" data-direccion="<?php echo htmlspecialchars($punto->getDireccion()); ?>" data-responsable="<?php echo htmlspecialchars($punto->getResponsable()); ?>" data-telefono="<?php echo htmlspecialchars($punto->getTelefono()); ?>" data-horario="<?php echo htmlspecialchars($punto->getHorario()); ?>" data-descripcion="<?php echo htmlspecialchars($punto->getDescripcion()); ?>">
                                         <i class="fas fa-map-marker-alt"></i> Ver en mapa
                                     </button>
+                                    <?php if ($esAdmin): ?>
+                                    <form method="POST" action="index.php?controlador=PuntoDistribucion&metodo=eliminar" style="display:inline" onsubmit="return confirm('¿Eliminar este punto?');">
+                                        <input type="hidden" name="id" value="<?php echo (int)$punto->getId(); ?>">
+                                        <button type="submit" class="btn small" style="margin-top:6px; background:#fee2e2; border-color:#fca5a5; color:#991b1b;">
+                                            <i class="fas fa-trash"></i> Eliminar
+                                        </button>
+                                    </form>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -161,8 +248,6 @@
                 'direccion' => $p->getDireccion(),
                 'responsable' => $p->getResponsable(),
                 'telefono' => $p->getTelefono(),
-                'latitud' => $p->getLatitud(),
-                'longitud' => $p->getLongitud(),
                 'horario' => $p->getHorario(),
                 'descripcion' => $p->getDescripcion(),
                 'created_at' => $p->getCreatedAt()

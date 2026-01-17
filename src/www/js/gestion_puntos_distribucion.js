@@ -3,9 +3,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const mapDetails = document.getElementById('mapDetails');
     const actionButtons = document.querySelectorAll('button[data-nombre]');
 
-    function setMap(lat, lng, direccion, nombre, responsable, telefono, horario, descripcion) {
-        const hasCoords = lat !== null && lat !== '' && lng !== null && lng !== '';
-        const query = hasCoords ? `${lat},${lng}` : encodeURIComponent(direccion || nombre || 'Spain');
+    function setMap(direccion, nombre, responsable, telefono, horario, descripcion) {
+        const query = encodeURIComponent(direccion || nombre || 'Spain');
         const src = `https://www.google.com/maps?q=${query}&output=embed`;
         mapFrame.setAttribute('src', src);
 
@@ -25,16 +24,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const direccion = btn.dataset.direccion;
             const responsable = btn.dataset.responsable;
             const telefono = btn.dataset.telefono;
-            const latitud = btn.dataset.latitud;
-            const longitud = btn.dataset.longitud;
             const horario = btn.dataset.horario;
             const descripcion = btn.dataset.descripcion;
-            setMap(latitud, longitud, direccion, nombre, responsable, telefono, horario, descripcion);
+            setMap(direccion, nombre, responsable, telefono, horario, descripcion);
         });
     });
 
     if (typeof window.puntosDistribucion !== 'undefined' && window.puntosDistribucion.length > 0) {
         const first = window.puntosDistribucion[0];
-        setMap(first.latitud, first.longitud, first.direccion, first.nombre, first.responsable, first.telefono, first.horario, first.descripcion);
+        setMap(first.direccion, first.nombre, first.responsable, first.telefono, first.horario, first.descripcion);
     }
 });

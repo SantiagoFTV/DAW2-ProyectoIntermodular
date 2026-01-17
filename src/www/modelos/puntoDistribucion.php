@@ -117,6 +117,13 @@ class PuntoDistribucion {
         }
     }
 
+    public static function eliminar($id) {
+        $bd = new BD();
+        self::asegurarTabla($bd);
+        $sql = "DELETE FROM puntos_distribucion WHERE id = :id";
+        $bd->ejecutar($sql, [':id' => $id]);
+    }
+
     private static function listarDesdeDump() {
         $dumpPath = __DIR__ . '/../../sql/sprint.sql';
         if (!file_exists($dumpPath)) {
