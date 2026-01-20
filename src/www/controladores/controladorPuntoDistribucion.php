@@ -32,8 +32,6 @@ class ControladorPuntoDistribucion {
             $direccion = isset($_POST['direccion']) ? trim($_POST['direccion']) : '';
             $responsable = isset($_POST['responsable']) ? trim($_POST['responsable']) : '';
             $telefono = isset($_POST['telefono']) ? trim($_POST['telefono']) : '';
-            $latitud = isset($_POST['latitud']) ? trim($_POST['latitud']) : '';
-            $longitud = isset($_POST['longitud']) ? trim($_POST['longitud']) : '';
             $horario = isset($_POST['horario']) ? trim($_POST['horario']) : '';
             $descripcion = isset($_POST['descripcion']) ? trim($_POST['descripcion']) : '';
 
@@ -42,13 +40,8 @@ class ControladorPuntoDistribucion {
                 return;
             }
 
-            if (($latitud !== '' && !is_numeric($latitud)) || ($longitud !== '' && !is_numeric($longitud))) {
-                $this->listarConMensaje('Latitud y longitud deben ser numéricos.', 'error');
-                return;
-            }
-
             require_once($this->config['dir_modelos'] . 'puntoDistribucion.php');
-            $punto = new PuntoDistribucion($nombre, $direccion, $responsable, $telefono, $latitud, $longitud, $horario, $descripcion === '' ? null : $descripcion);
+            $punto = new PuntoDistribucion($nombre, $direccion, $responsable, $telefono, null, null, $horario, $descripcion === '' ? null : $descripcion);
             $id = $punto->guardar();
 
             $mensaje = "✅ Punto de distribución <strong>{$nombre}</strong> registrado (ID: {$id}).";
@@ -58,6 +51,31 @@ class ControladorPuntoDistribucion {
                 $this->mostrarError($exception, 'Error al crear punto de distribución');
             } else {
                 $this->listarConMensaje('No se pudo guardar el punto. Contacte al administrador.', 'error');
+            }
+        }
+    }
+
+    public function eliminar() {
+        try {
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                $this->listar();
+                return;
+            }
+
+            $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+            if ($id <= 0) {
+                $this->listarConMensaje('ID no válido para eliminar.', 'error');
+                return;
+            }
+
+            require_once($this->config['dir_modelos'] . 'puntoDistribucion.php');
+            PuntoDistribucion::eliminar($id);
+            $this->listarConMensaje('Punto eliminado correctamente.', 'success');
+        } catch (Throwable $exception) {
+            if ($this->config['debug']) {
+                $this->mostrarError($exception, 'Error al eliminar punto de distribución');
+            } else {
+                $this->listarConMensaje('No se pudo eliminar el punto. Contacte al administrador.', 'error');
             }
         }
     }

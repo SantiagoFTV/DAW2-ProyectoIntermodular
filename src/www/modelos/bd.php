@@ -47,5 +47,15 @@ class BD {
             throw new Exception("Error al seleccionar: " . $exception->getMessage());
         }
     }
+
+    public function ejecutar($sql, $parametros = []) {
+        try {
+            $sentencia = $this->conexion->prepare($sql);
+            $sentencia->execute($parametros);
+            return $sentencia->rowCount();
+        } catch (PDOException $exception) {
+            throw new Exception("Error al ejecutar: " . $exception->getMessage());
+        }
+    }
 }
 ?>

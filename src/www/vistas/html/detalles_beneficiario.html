@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalles del Beneficiario</title>
+    <link rel="stylesheet" href="<?php echo $config['dir_css']; ?>gestion_beneficiarios.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .menu-return { display: flex; justify-content: flex-end; margin: 12px 0 6px; }
+        .menu-return .btn { box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="menu-return">
+            <a class="btn ghost" href="index.php?controlador=Home&metodo=index" style="display:inline-flex; align-items:center; gap:6px;">
+                <i class="fas fa-house"></i> Volver al menú
+            </a>
+        </div>
+        <header>
+            <div class="org-logo">
+                <i class="fas fa-user-details"></i>
+            </div>
+            <h1>Detalles del Beneficiario</h1>
+            <p>Asignación Inteligente de Productos</p>
+        </header>
+
+        <!-- Mensajes -->
+        <?php if (isset($_GET['mensaje'])): ?>
+            <div class="mensaje" id="mensaje">
+                <?php 
+                switch ($_GET['mensaje']) {
+                    case 'actualizado':
+                        echo '<i class="fas fa-check-circle"></i> Beneficiario actualizado correctamente';
+                        break;
+                    case 'asignado':
+                        echo '<i class="fas fa-check-circle"></i> Productos asignados correctamente';
+                        break;
+                    default:
+                        echo htmlspecialchars($_GET['mensaje']);
+                }
+                ?>
+            </div>
+        <?php endif; ?>
+
+        <div class="main-content">
+            <!-- Botón volver -->
+            <div class="button-group">
+                <a href="index.php?controlador=Beneficiario&metodo=listar" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver al Listado
+                </a>
+            </div>
+
+            <!-- Datos principales del beneficiario -->
+            <div class="beneficiario-details">
+                <div class="details-header">
+                    <h2><?php echo htmlspecialchars($beneficiario_vista->getNombre() . ' ' . $beneficiario_vista->getApellidos()); ?></h2>
+                    <span class="badge badge-<?php echo $beneficiario_vista->getEstadoValidacion(); ?>">
+                        <?php echo ucfirst($beneficiario_vista->getEstadoValidacion()); ?>
+                    </span>
+                </div>
+
+                <!-- Información personal -->
+                <div class="details-section">
+                    <h3><i class="fas fa-id-card"></i> Información Personal</h3>
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <label>Número de Identificación</label>
+                            <p><?php echo htmlspecialchars($beneficiario_vista->getNumeroIdentificacion() ?? 'No especificado'); ?></p>
+                        </div>
+                        <div class="detail-item">
+                            <label>Teléfono</label>
+                            <p><?php echo htmlspecialchars($beneficiario_vista->getTelefono() ?? 'No especificado'); ?></p>
+                        </div>
+                        <div class="detail-item">
+                            <label>Email</label>
+                            <p><?php echo htmlspecialchars($beneficiario_vista->getEmail() ?? 'No especificado'); ?></p>
+                        </div>
+                        <div class="detail-item">
+                            <label>Tamaño Familiar</label>
+                            <p><?php echo htmlspecialchars($beneficiario_vista->getTamañoFamiliar() ?? '-'); ?> personas</p>
+                        </div>
+                    </div>
+
+                    <div class="full-width">
+                        <label>Dirección</label>
+                        <p><?php echo htmlspecialchars($beneficiario_vista->getDireccion() ?? 'No especificada'); ?></p>
+                    </div>
+
+                    <div class="full-width">
+                        <label>Necesidades</label>
+                        <p><?php echo htmlspecialchars($beneficiario_vista->getNecesidades() ?? 'No especificadas'); ?></p>
+                    </div>
+                </div>
+
+                <!-- Información de asignaciones -->
+                <div class="details-section">
+                    <h3><i class="fas fa-calendar-alt"></i> Información de Asignaciones</h3>
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <label>Última Asignación</label>
+                            <p>
+                                <?php 
+                                $fecha = $beneficiario_vista->getFechaUltimaAsignacion();
+                                if ($fecha) {
+                                    echo date('d/m/Y H:i', strtotime($fecha));
+                                } else {
+                                    echo 'Nunca ha recibido asignación';
+                                }
+                                ?>
+                            </p>
+                        </div>
+                        <div class="detail-item">
+                            <label>Frecuencia Máxima (días)</label>
+                            <p><?php echo $beneficiario_vista->getFrecuenciaMaximaDias(); ?> días</p>
+                        </div>
+                        <div class="detail-item">
+                            <label>Próxima Asignación Disponible</label>
+                            <p>
+                                <?php 
+                                if ($beneficiario_vista->getFechaUltimaAsignacion()) {
+                                    $proxima = date('d/m/Y', strtotime($beneficiario_vista->getFechaUltimaAsignacion() . ' + ' . $beneficiario_vista->getFrecuenciaMaximaDias() . ' days'));
+                                    $puede_recibir = $beneficiario_vista->puedeRecibirAsignacion();
+                                    if ($puede_recibir) {
+                                        echo '<span class="text-success">Disponible ahora</span>';
+                                    } else {
+                                        echo 'A partir del ' . $proxima;
+                                    }
+                                } else {
+                                    echo '<span class="text-success">Disponible ahora</span>';
+                                }
+                                ?>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Editar información del beneficiario -->
+                <div class="form-container">
+                    <h3><i class="fas fa-edit"></i> Editar Información</h3>
+                    <form method="POST" action="index.php?controlador=Beneficiario&metodo=actualizar" class="form-grid">
+                        <input type="hidden" name="id" value="<?php echo $beneficiario_vista->getId(); ?>">
+                        
+                        <div class="form-group col-2">
+                            <label class="form-label" for="nombre">Nombre *</label>
+                            <input type="text" id="nombre" name="nombre" class="form-input" 
+                                   value="<?php echo htmlspecialchars($beneficiario_vista->getNombre()); ?>" required>
+                        </div>
+                        <div class="form-group col-2">
+                            <label class="form-label" for="apellidos">Apellidos *</label>
+                            <input type="text" id="apellidos" name="apellidos" class="form-input" 
+                                   value="<?php echo htmlspecialchars($beneficiario_vista->getApellidos()); ?>" required>
+                        </div>
+                        <div class="form-group col-2">
+                            <label class="form-label" for="numero_identificacion">Número de Identificación</label>
+                            <input type="text" id="numero_identificacion" name="numero_identificacion" class="form-input" 
+                                   value="<?php echo htmlspecialchars($beneficiario_vista->getNumeroIdentificacion() ?? ''); ?>">
+                        </div>
+                        <div class="form-group col-2">
+                            <label class="form-label" for="telefono">Teléfono</label>
+                            <input type="tel" id="telefono" name="telefono" class="form-input" 
+                                   value="<?php echo htmlspecialchars($beneficiario_vista->getTelefono() ?? ''); ?>">
+                        </div>
+                        <div class="form-group col-2">
+                            <label class="form-label" for="email">Email</label>
+                            <input type="email" id="email" name="email" class="form-input" 
+                                   value="<?php echo htmlspecialchars($beneficiario_vista->getEmail() ?? ''); ?>">
+                        </div>
+                        <div class="form-group col-2">
+                            <label class="form-label" for="tamaño_familiar">Tamaño Familiar</label>
+                            <input type="number" id="tamaño_familiar" name="tamaño_familiar" class="form-input" min="1"
+                                   value="<?php echo htmlspecialchars($beneficiario_vista->getTamañoFamiliar() ?? ''); ?>">
+                        </div>
+                        <div class="form-group col-2">
+                            <label class="form-label" for="estado_validacion">Estado de Validación</label>
+                            <select id="estado_validacion" name="estado_validacion" class="form-input">
+                                <option value="pendiente" <?php echo $beneficiario_vista->getEstadoValidacion() === 'pendiente' ? 'selected' : ''; ?>>Pendiente</option>
+                                <option value="validado" <?php echo $beneficiario_vista->getEstadoValidacion() === 'validado' ? 'selected' : ''; ?>>Validado</option>
+                                <option value="rechazado" <?php echo $beneficiario_vista->getEstadoValidacion() === 'rechazado' ? 'selected' : ''; ?>>Rechazado</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-1">
+                            <label class="form-label" for="direccion">Dirección</label>
+                            <textarea id="direccion" name="direccion" class="form-input" rows="2"><?php echo htmlspecialchars($beneficiario_vista->getDireccion() ?? ''); ?></textarea>
+                        </div>
+                        <div class="form-group col-1">
+                            <label class="form-label" for="necesidades">Necesidades</label>
+                            <textarea id="necesidades" name="necesidades" class="form-input" rows="2"><?php echo htmlspecialchars($beneficiario_vista->getNecesidades() ?? ''); ?></textarea>
+                        </div>
+                        <div class="form-actions col-1">
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Cambios</button>
+                            <a href="index.php?controlador=Beneficiario&metodo=detalles&id=<?php echo $beneficiario_vista->getId(); ?>" 
+                               class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Asignar productos -->
+                <?php if ($beneficiario_vista->getEstadoValidacion() === 'validado'): ?>
+                    <div class="form-container">
+                        <h3><i class="fas fa-box"></i> Asignar Productos</h3>
+                        <form method="POST" action="index.php?controlador=Beneficiario&metodo=asignarProductos" id="form-asignacion">
+                            <input type="hidden" name="beneficiario_id" value="<?php echo $beneficiario_vista->getId(); ?>">
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="punto_distribucion_id">Punto de Distribución</label>
+                                <select id="punto_distribucion_id" name="punto_distribucion_id" class="form-input" required>
+                                    <option value="">Seleccionar punto de distribución...</option>
+                                    <?php foreach ($puntos_distribucion_vista as $punto): ?>
+                                        <option value="<?php echo $punto['id']; ?>">
+                                            <?php echo htmlspecialchars($punto['nombre']); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Productos a Asignar</label>
+                                <div id="productos-container">
+                                    <div class="producto-item">
+                                        <input type="text" name="productos[0][nombre]" class="form-input" placeholder="Nombre del producto" required>
+                                        <input type="number" name="productos[0][cantidad]" class="form-input" placeholder="Cantidad" min="1" required>
+                                        <button type="button" class="btn btn-danger" onclick="removerProducto(this)">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-secondary" onclick="agregarProducto()">
+                                    <i class="fas fa-plus"></i> Agregar Producto
+                                </button>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="coordinador">Coordinador</label>
+                                <input type="text" id="coordinador" name="coordinador" class="form-input" placeholder="Nombre del coordinador">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="notas">Notas</label>
+                                <textarea id="notas" name="notas" class="form-input" rows="3" placeholder="Notas adicionales..."></textarea>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-success"><i class="fas fa-check"></i> Asignar Productos</button>
+                                <button type="reset" class="btn btn-secondary"><i class="fas fa-redo"></i> Limpiar</button>
+                            </div>
+                        </form>
+                    </div>
+                <?php else: ?>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> El beneficiario debe estar validado para asignarle productos.
+                    </div>
+                <?php endif; ?>
+
+                <!-- Historial de asignaciones -->
+                <div class="table-container">
+                    <h3><i class="fas fa-history"></i> Historial de Asignaciones</h3>
+                    
+                    <?php if (empty($historial_vista)): ?>
+                        <div class="empty-state">
+                            <p>No hay asignaciones registradas para este beneficiario.</p>
+                        </div>
+                    <?php else: ?>
+                        <div class="table-responsive">
+                            <table class="beneficiarios-table">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Cantidad</th>
+                                        <th>Punto de Distribución</th>
+                                        <th>Coordinador</th>
+                                        <th>Fecha Asignación</th>
+                                        <th>Notas</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($historial_vista as $asignacion): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($asignacion['nombre_producto']); ?></td>
+                                            <td><?php echo $asignacion['cantidad']; ?></td>
+                                            <td><?php echo htmlspecialchars($asignacion['punto_distribucion_nombre'] ?? 'N/A'); ?></td>
+                                            <td><?php echo htmlspecialchars($asignacion['coordinador'] ?? 'N/A'); ?></td>
+                                            <td><?php echo date('d/m/Y H:i', strtotime($asignacion['fecha_asignacion'])); ?></td>
+                                            <td><?php echo htmlspecialchars($asignacion['notas'] ?? '-'); ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Ayuda Solidaria &copy; 2025 - Juntos contra el hambre</p>
+            <p>Sistema de Gestión de Beneficiarios - Base de datos: <?php echo $config['bd_nombre']; ?></p>
+        </footer>
+    </div>
+
+    <script src="<?php echo $config['dir_css']; ?>../js/gestion_beneficiarios.js"></script>
+</body>
+</html>

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Beneficiarios - Asignación Inteligente</title>
+    <link rel="stylesheet" href="<?php echo $config['dir_css']; ?>gestion_beneficiarios.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .menu-return { display: flex; justify-content: flex-end; margin: 12px 0 6px; }
+        .menu-return .btn { box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
+        
+        .navbar {
+            background: linear-gradient(135deg, #2F855A 0%, #276749 100%);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .user-info .role {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .btn-logout {
+            background: #f8d7da;
+            color: #721c24;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .btn-logout:hover {
+            background: #f5c6cb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(114,28,36,0.2);
+        }
+    </style>
+</head>
+<body>
+    <?php
+    require_once(__DIR__ . '/../../modelos/Sesion.php');
+    Sesion::iniciarSesion();
+    
+    $usuario = Sesion::obtenerUsuario();
+    $rol = Sesion::obtenerRol();
+    $esAdmin = Sesion::esAdmin();
+    ?>
+
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <i class="fas fa-apple"></i> Sistema de Donaciones
+        </div>
+        <div class="navbar-user">
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <span><?php echo htmlspecialchars($usuario); ?></span>
+                <span class="role"><?php echo $esAdmin ? '👑 Admin' : '👤 Usuario'; ?></span>
+            </div>
+            <a href="index.php?controlador=Auth&metodo=logout" class="btn-logout">
+                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+            </a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="menu-return">
+            <a class="btn ghost" href="index.php?controlador=Home&metodo=index" style="display:inline-flex; align-items:center; gap:6px;">
+                <i class="fas fa-house"></i> Volver al menú
+            </a>
+        </div>
+        <header>
+            <div class="org-logo">
+                <i class="fas fa-users"></i>
+            </div>
+            <h1>Asignación Inteligente de Productos</h1>
+            <p>Gestión de Beneficiarios - Juntos contra el hambre</p>
+        </header>
+
+        <!-- Mensajes -->
+        <?php if (isset($_GET['mensaje'])): ?>
+            <div class="mensaje" id="mensaje">
+                <?php 
+                switch ($_GET['mensaje']) {
+                    case 'creado':
+                        echo '<i class="fas fa-check-circle"></i> Beneficiario registrado correctamente';
+                        break;
+                    case 'actualizado':
+                        echo '<i class="fas fa-check-circle"></i> Beneficiario actualizado correctamente';
+                        break;
+                    case 'asignado':
+                        echo '<i class="fas fa-check-circle"></i> Productos asignados correctamente';
+                        break;
+                    case 'eliminado':
+                        echo '<i class="fas fa-check-circle"></i> Beneficiario eliminado correctamente';
+                        break;
+                    default:
+                        echo htmlspecialchars($_GET['mensaje']);
+                }
+                ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if (isset($mensaje_vista)): ?>
+            <div class="mensaje" id="mensaje" style="background: <?php echo $tipo_mensaje === 'error' ? '#f8d7da' : '#d4edda'; ?>; color: <?php echo $tipo_mensaje === 'error' ? '#721c24' : '#155724'; ?>;">
+                <?php echo $mensaje_vista; ?>
+            </div>
+        <?php endif; ?>
+
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-number"><?php echo count($beneficiarios_vista); ?></div>
+                <div class="stat-label">Beneficiarios</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number"><?php echo count(array_filter($beneficiarios_vista, function($b) { return $b->getEstadoValidacion() === 'validado'; })); ?></div>
+                <div class="stat-label">Validados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number"><?php echo count(array_filter($beneficiarios_vista, function($b) { return $b->getEstadoValidacion() === 'pendiente'; })); ?></div>
+                <div class="stat-label">Pendientes</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Formulario de búsqueda -->
+            <div class="search-container">
+                <h2 class="form-title"><i class="fas fa-search"></i> Buscar Beneficiario</h2>
+                <form method="POST" action="index.php?controlador=Beneficiario&metodo=buscar" class="search-form">
+                    <div class="search-input-group">
+                        <input type="text" name="termino_busqueda" class="form-input" placeholder="Buscar por nombre, apellidos o número de identificación..." 
+                               value="<?php echo isset($termino_busqueda) ? htmlspecialchars($termino_busqueda) : ''; ?>">
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Buscar</button>
+                        <a href="index.php?controlador=Beneficiario&metodo=listar" class="btn btn-secondary"><i class="fas fa-redo"></i> Limpiar</a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Botón para registrar nuevo beneficiario - Solo para admin -->
+            <?php if ($esAdmin): ?>
+            <div class="form-container">
+                <h2 class="form-title"><i class="fas fa-user-plus"></i> Registrar Nuevo Beneficiario</h2>
+                <form method="POST" action="index.php?controlador=Beneficiario&metodo=crear" class="form-grid">
+                    <div class="form-group col-2">
+                        <label class="form-label" for="nombre">Nombre *</label>
+                        <input type="text" id="nombre" name="nombre" class="form-input" placeholder="Nombre" required>
+                    </div>
+                    <div class="form-group col-2">
+                        <label class="form-label" for="apellidos">Apellidos *</label>
+                        <input type="text" id="apellidos" name="apellidos" class="form-input" placeholder="Apellidos" required>
+                    </div>
+                    <div class="form-group col-2">
+                        <label class="form-label" for="numero_identificacion">Número de Identificación</label>
+                        <input type="text" id="numero_identificacion" name="numero_identificacion" class="form-input" placeholder="DNI/Pasaporte">
+                    </div>
+                    <div class="form-group col-2">
+                        <label class="form-label" for="telefono">Teléfono</label>
+                        <input type="tel" id="telefono" name="telefono" class="form-input" placeholder="Teléfono de contacto">
+                    </div>
+                    <div class="form-group col-2">
+                        <label class="form-label" for="email">Email</label>
+                        <input type="email" id="email" name="email" class="form-input" placeholder="Correo electrónico">
+                    </div>
+                    <div class="form-group col-2">
+                        <label class="form-label" for="tamaño_familiar">Tamaño Familiar</label>
+                        <input type="number" id="tamaño_familiar" name="tamaño_familiar" class="form-input" min="1" placeholder="Número de miembros">
+                    </div>
+                    <div class="form-group col-1">
+                        <label class="form-label" for="direccion">Dirección</label>
+                        <textarea id="direccion" name="direccion" class="form-input" placeholder="Dirección completa" rows="2"></textarea>
+                    </div>
+                    <div class="form-group col-1">
+                        <label class="form-label" for="necesidades">Necesidades</label>
+                        <textarea id="necesidades" name="necesidades" class="form-input" placeholder="Especificar necesidades (alimentos, medicinas, etc.)" rows="2"></textarea>
+                    </div>
+                    <div class="form-actions col-1">
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Registrar Beneficiario</button>
+                        <button type="reset" class="btn btn-secondary"><i class="fas fa-redo"></i> Limpiar</button>
+                    </div>
+                </form>
+            </div>
+            <?php endif; ?>
+
+            <!-- Lista de beneficiarios -->
+            <div class="table-container">
+                <h2 class="table-title"><i class="fas fa-list"></i> Beneficiarios Registrados</h2>
+                
+                <?php if (empty($beneficiarios_vista)): ?>
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h3>No hay beneficiarios registrados</h3>
+                        <p>Comienza registrando el primer beneficiario usando el formulario anterior.</p>
+                    </div>
+                <?php else: ?>
+                    <div class="table-responsive">
+                        <table class="beneficiarios-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre Completo</th>
+                                    <th>Identificación</th>
+                                    <th>Teléfono</th>
+                                    <th>Tamaño Familiar</th>
+                                    <th>Estado</th>
+                                    <th>Última Asignación</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($beneficiarios_vista as $beneficiario): ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($beneficiario->getId()); ?></td>
+                                        <td><strong><?php echo htmlspecialchars($beneficiario->getNombre() . ' ' . $beneficiario->getApellidos()); ?></strong></td>
+                                        <td><?php echo htmlspecialchars($beneficiario->getNumeroIdentificacion() ?? 'N/A'); ?></td>
+                                        <td><?php echo htmlspecialchars($beneficiario->getTelefono() ?? 'N/A'); ?></td>
+                                        <td><?php echo htmlspecialchars($beneficiario->getTamañoFamiliar() ?? '-'); ?> personas</td>
+                                        <td>
+                                            <span class="badge badge-<?php echo $beneficiario->getEstadoValidacion(); ?>">
+                                                <?php echo ucfirst($beneficiario->getEstadoValidacion()); ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <?php 
+                                            $fecha = $beneficiario->getFechaUltimaAsignacion();
+                                            if ($fecha) {
+                                                echo date('d/m/Y H:i', strtotime($fecha));
+                                            } else {
+                                                echo '<span class="text-muted">Nunca</span>';
+                                            }
+                                            ?>
+                                        </td>
+                                        <td class="actions">
+                                            <?php if ($esAdmin): ?>
+                                            <a href="index.php?controlador=Beneficiario&metodo=detalles&id=<?php echo $beneficiario->getId(); ?>" 
+                                               class="btn btn-sm btn-info" title="Ver detalles">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <?php endif; ?>
+                                            <?php if ($esAdmin): ?>
+                                            <form method="POST" action="index.php?controlador=Beneficiario&metodo=eliminar" style="display:inline; margin-left:6px;">
+                                                <input type="hidden" name="id" value="<?php echo $beneficiario->getId(); ?>">
+                                                <button type="submit" class="btn btn-sm btn-danger" title="Eliminar" onclick="return confirm('¿Eliminar este beneficiario? Se eliminarán también sus asignaciones.');">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <footer>
+            <p>Ayuda Solidaria &copy; 2025 - Juntos contra el hambre</p>
+            <p>Sistema de Gestión de Beneficiarios - Base de datos: <?php echo $config['bd_nombre']; ?></p>
+        </footer>
+    </div>
+
+    <script src="<?php echo $config['dir_css']; ?>../js/gestion_beneficiarios.js"></script>
+</body>
+</html>

@@ -80,6 +80,48 @@ class ControladorVoluntario{
         }
     }
 
+    public function eliminar(){
+        try{
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                $this->listar();
+                return;
+            }
+
+            // Obtener y validar ID
+            $id = isset($_POST['id']) ? trim($_POST['id']) : '';
+            
+            // Debug si está activado
+            if ($this->config['debug']) {
+                error_log("DEBUG eliminar: POST['id'] = " . var_export($_POST['id'], true));
+                error_log("DEBUG eliminar: id después de trim = " . var_export($id, true));
+            }
+            
+            // Convertir a int
+            $id = (int) $id;
+            
+            if ($id <= 0) {
+                if ($this->config['debug']) {
+                    error_log("DEBUG eliminar: ID inválido después de conversión: " . var_export($id, true));
+                }
+                $this->listarConMensaje('ID inválido para eliminar voluntario.', 'error');
+                return;
+            }
+
+            require_once($this->config['dir_modelos'].'voluntario.php');
+            Voluntario::eliminar($id);
+            $this->listarConMensaje('✅ Voluntario eliminado correctamente.', 'success');
+        } catch(Throwable $exception){
+            if($this->config['debug']) {
+                echo "<div style='background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin: 20px;'>";
+                echo "<h3>Error al eliminar voluntario:</h3>";
+                echo "<p><strong>Mensaje:</strong> " . $exception->getMessage() . "</p>";
+                echo "</div>";
+            } else {
+                $this->listarConMensaje('No se pudo eliminar el voluntario. Contacte al administrador.', 'error');
+            }
+        }
+    }
+
     private function listarConMensaje($mensaje, $tipo = 'success'){
         try {
             require_once($this->config['dir_modelos'].'voluntario.php');
