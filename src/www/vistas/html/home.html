@@ -282,6 +282,16 @@
             </a>
 
             <?php if ($esAdmin): ?>
+            <!-- DONACIONES (SOLO ADMIN) -->
+            <a href="index.php?controlador=Donacion&metodo=listar" class="module-card admin">
+                <div class="module-icon">
+                    <i class="fas fa-box-open"></i>
+                </div>
+                <h3>Registro de Donaciones</h3>
+                <p>Registra y gestiona donaciones entrantes</p>
+                <span class="access-level">⚡ Solo Administrador</span>
+            </a>
+
             <!-- ALERTAS (SOLO ADMIN) -->
             <a href="index.php?controlador=AlertaCaducidad&metodo=listar" class="module-card admin">
                 <div class="module-icon">
@@ -305,6 +315,15 @@
 
             <?php if (!$esAdmin): ?>
             <!-- ACCESO RESTRINGIDO -->
+            <div class="module-card restricted" style="opacity: 0.6; cursor: not-allowed;">
+                <div class="module-icon">
+                    <i class="fas fa-box-open"></i>
+                </div>
+                <h3>Registro de Donaciones</h3>
+                <p>Acceso restringido a administradores</p>
+                <span class="access-level">🔒 Acceso Denegado</span>
+            </div>
+
             <div class="module-card restricted" style="opacity: 0.6; cursor: not-allowed;">
                 <div class="module-icon">
                     <i class="fas fa-triangle-exclamation"></i>

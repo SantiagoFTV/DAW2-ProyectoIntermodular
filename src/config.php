@@ -7,6 +7,7 @@ return [
     'dir_controladores' => './www/controladores/',
     // directorio público para archivos CSS (ruta relativa desde index.php)
     'dir_css' => './www/css/',
+    'dir_js' => './www/js/',
     'bd_host' => 'localhost',
     'bd_nombre' => 'sprint',
     'bd_usuario' => 'root',

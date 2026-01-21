@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Donaciones - Sistema de Donaciones</title>
+    <link rel="stylesheet" href="<?php echo $config['dir_css']; ?>gestion_donaciones.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <?php
+    require_once(__DIR__ . '/../../modelos/Sesion.php');
+    Sesion::iniciarSesion();
+    
+    $usuario = Sesion::obtenerUsuario();
+    $rol = Sesion::obtenerRol();
+    $esAdmin = Sesion::esAdmin();
+    ?>
+
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <i class="fas fa-hands-helping"></i> Sistema de Donaciones
+        </div>
+        <div class="navbar-user">
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <span><?php echo htmlspecialchars($usuario); ?></span>
+                <span class="role"><?php echo $esAdmin ? '👑 Admin' : '👤 Usuario'; ?></span>
+            </div>
+            <a href="index.php?controlador=Auth&metodo=logout" class="btn-logout">
+                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+            </a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="menu-return">
+            <a class="btn ghost" href="index.php?controlador=Home&metodo=index">
+                <i class="fas fa-house"></i> Volver al menú
+            </a>
+        </div>
+
+        <header>
+            <div class="org-logo">
+                <i class="fas fa-box-open"></i>
+            </div>
+            <h1>Registro de Donaciones Entrantes</h1>
+            <p>Control de inventario y seguimiento de donaciones - Solo Administradores</p>
+        </header>
+
+        <!-- Mensajes -->
+        <?php if (isset($_GET['mensaje'])): ?>
+            <div class="mensaje" id="mensaje">
+                <?php 
+                switch ($_GET['mensaje']) {
+                    case 'creado':
+                        echo '<i class="fas fa-check-circle"></i> Donación registrada correctamente';
+                        break;
+                    case 'actualizado':
+                        echo '<i class="fas fa-check-circle"></i> Donación actualizada correctamente';
+                        break;
+                    case 'eliminado':
+                        echo '<i class="fas fa-check-circle"></i> Donación eliminada correctamente';
+                        break;
+                    default:
+                        echo htmlspecialchars($_GET['mensaje']);
+                }
+                ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if (isset($mensaje_vista)): ?>
+            <div class="mensaje" id="mensaje" style="background: <?php echo $tipo_mensaje === 'error' ? '#f8d7da' : '#d4edda'; ?>; color: <?php echo $tipo_mensaje === 'error' ? '#721c24' : '#155724'; ?>;">
+                <?php echo $mensaje_vista; ?>
+            </div>
+        <?php endif; ?>
+
+        <!-- Estadísticas -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-number"><?php echo $estadisticas_vista['total']; ?></div>
+                <div class="stat-label">Total Donaciones</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number"><?php echo number_format($estadisticas_vista['total_cantidad']); ?></div>
+                <div class="stat-label">Cantidad Total</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number"><?php echo $estadisticas_vista['este_mes']; ?></div>
+                <div class="stat-label">Este Mes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number"><?php echo $estadisticas_vista['tipos_productos']; ?></div>
+                <div class="stat-label">Tipos de Productos</div>
+            </div>
+        </div>
+
+        <!-- Botón para abrir formulario -->
+        <div style="margin: 20px 0; text-align: right;">
+            <button class="btn primary" onclick="abrirFormularioNuevo()">
+                <i class="fas fa-plus"></i> Registrar Nueva Donación
+            </button>
+        </div>
+
+        <!-- Búsqueda y Filtros -->
+        <div class="search-filter-container">
+            <form method="POST" action="index.php?controlador=Donacion&metodo=buscar" class="search-form">
+                <input type="text" name="termino_busqueda" placeholder="Buscar por donante, producto..." 
+                       value="<?php echo isset($termino_busqueda) ? htmlspecialchars($termino_busqueda) : ''; ?>">
+                <button type="submit" class="btn primary">
+                    <i class="fas fa-search"></i> Buscar
+                </button>
+                <?php if (isset($termino_busqueda)): ?>
+                    <a href="index.php?controlador=Donacion&metodo=listar" class="btn ghost">
+                        <i class="fas fa-times"></i> Limpiar
+                    </a>
+                <?php endif; ?>
+            </form>
+
+            <button class="btn ghost" onclick="toggleFiltros()">
+                <i class="fas fa-filter"></i> Filtros Avanzados
+            </button>
+        </div>
+
+        <!-- Panel de Filtros Avanzados -->
+        <div id="filtrosPanel" class="filtros-panel" style="display: none;">
+            <form method="POST" action="index.php?controlador=Donacion&metodo=filtrar">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fecha Desde</label>
+                        <input type="date" name="fecha_desde" value="<?php echo isset($filtro_fecha_desde) ? $filtro_fecha_desde : ''; ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha Hasta</label>
+                        <input type="date" name="fecha_hasta" value="<?php echo isset($filtro_fecha_hasta) ? $filtro_fecha_hasta : ''; ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Donante</label>
+                        <input type="text" name="donante" placeholder="Nombre del donante" value="<?php echo isset($filtro_donante) ? htmlspecialchars($filtro_donante) : ''; ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de Producto</label>
+                        <input type="text" name="tipo_producto" placeholder="Producto" value="<?php echo isset($filtro_tipo_producto) ? htmlspecialchars($filtro_tipo_producto) : ''; ?>">
+                    </div>
+                </div>
+                <div style="text-align: right; margin-top: 15px;">
+                    <button type="submit" class="btn primary">
+                        <i class="fas fa-filter"></i> Aplicar Filtros
+                    </button>
+                    <a href="index.php?controlador=Donacion&metodo=listar" class="btn ghost">
+                        <i class="fas fa-times"></i> Limpiar Filtros
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tabla de Donaciones -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Donante</th>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Fecha Recepción</th>
+                        <th>Fecha Caducidad</th>
+                        <th>Punto Distribución</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (count($donaciones_vista) === 0): ?>
+                        <tr>
+                            <td colspan="9" style="text-align: center; padding: 40px;">
+                                <i class="fas fa-inbox" style="font-size: 48px; color: #ccc; display: block; margin-bottom: 15px;"></i>
+                                No se encontraron donaciones
+                            </td>
+                        </tr>
+                    <?php else: ?>
+                        <?php foreach ($donaciones_vista as $donacion): ?>
+                            <tr>
+                                <td><?php echo $donacion->getId(); ?></td>
+                                <td><?php echo htmlspecialchars($donacion->getNombreDonante()); ?></td>
+                                <td><?php echo htmlspecialchars($donacion->getTipoProducto()); ?></td>
+                                <td><?php echo $donacion->getCantidad() . ' ' . htmlspecialchars($donacion->getUnidadMedida()); ?></td>
+                                <td><?php echo date('d/m/Y', strtotime($donacion->getFechaRecepcion())); ?></td>
+                                <td>
+                                    <?php 
+                                    if ($donacion->getFechaCaducidad()) {
+                                        echo date('d/m/Y', strtotime($donacion->getFechaCaducidad()));
+                                        
+                                        // Calcular días hasta caducidad
+                                        $hoy = new DateTime();
+                                        $caducidad = new DateTime($donacion->getFechaCaducidad());
+                                        $diferencia = $hoy->diff($caducidad);
+                                        $dias = $diferencia->days;
+                                        
+                                        if ($caducidad < $hoy) {
+                                            echo ' <span class="badge danger">Caducado</span>';
+                                        } elseif ($dias <= 3) {
+                                            echo ' <span class="badge danger">' . $dias . ' días</span>';
+                                        } elseif ($dias <= 7) {
+                                            echo ' <span class="badge warning">' . $dias . ' días</span>';
+                                        }
+                                    } else {
+                                        echo '<span style="color: #999;">No aplica</span>';
+                                    }
+                                    ?>
+                                </td>
+                                <td><?php echo htmlspecialchars($donacion->getNombrePuntoDistribucion()); ?></td>
+                                <td>
+                                    <span class="badge <?php echo $donacion->getEstado() === 'recibido' ? 'success' : 'secondary'; ?>">
+                                        <?php echo ucfirst(htmlspecialchars($donacion->getEstado())); ?>
+                                    </span>
+                                </td>
+                                <td class="actions">
+                                    <button class="btn-icon" onclick="editarDonacion(<?php echo $donacion->getId(); ?>)" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn-icon danger" onclick="confirmarEliminar(<?php echo $donacion->getId(); ?>)" title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal para Nuevo/Editar Donación -->
+    <div id="modalDonacion" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitulo">Registrar Nueva Donación</h2>
+                <button class="close-modal" onclick="cerrarModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="formDonacion" method="POST" action="index.php?controlador=Donacion&metodo=crear">
+                <input type="hidden" id="donacion_id" name="id">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nombre_donante">Nombre del Donante *</label>
+                        <input type="text" id="nombre_donante" name="nombre_donante" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="tipo_producto">Tipo de Producto *</label>
+                        <input type="text" id="tipo_producto" name="tipo_producto" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="cantidad">Cantidad *</label>
+                        <input type="number" id="cantidad" name="cantidad" min="1" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="unidad_medida">Unidad de Medida</label>
+                        <select id="unidad_medida" name="unidad_medida">
+                            <option value="unidades">Unidades</option>
+                            <option value="kg">Kilogramos (kg)</option>
+                            <option value="litros">Litros</option>
+                            <option value="cajas">Cajas</option>
+                            <option value="paquetes">Paquetes</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="fecha_recepcion">Fecha de Recepción *</label>
+                        <input type="date" id="fecha_recepcion" name="fecha_recepcion" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="fecha_caducidad">Fecha de Caducidad</label>
+                        <input type="date" id="fecha_caducidad" name="fecha_caducidad">
+                        <small>Solo si el producto es perecedero</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="punto_distribucion_id">Punto de Distribución</label>
+                    <select id="punto_distribucion_id" name="punto_distribucion_id">
+                        <option value="">Sin asignar</option>
+                        <?php foreach ($puntos_distribucion_vista as $punto): ?>
+                            <option value="<?php echo $punto->getId(); ?>">
+                                <?php echo htmlspecialchars($punto->getNombre()); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="form-group" id="estadoGroup" style="display: none;">
+                    <label for="estado">Estado</label>
+                    <select id="estado" name="estado">
+                        <option value="recibido">Recibido</option>
+                        <option value="en_inventario">En Inventario</option>
+                        <option value="distribuido">Distribuido</option>
+                        <option value="caducado">Caducado</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="observaciones">Observaciones</label>
+                    <textarea id="observaciones" name="observaciones" rows="3"></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn ghost" onclick="cerrarModal()">Cancelar</button>
+                    <button type="submit" class="btn primary">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Pasar datos de PHP a JavaScript para edición
+        const donacionesData = <?php 
+            if (isset($donaciones_vista) && count($donaciones_vista) > 0) {
+                echo json_encode(array_map(function($d) {
+                    return [
+                        'id' => $d->getId(),
+                        'nombre_donante' => $d->getNombreDonante(),
+                        'tipo_producto' => $d->getTipoProducto(),
+                        'cantidad' => $d->getCantidad(),
+                        'unidad_medida' => $d->getUnidadMedida(),
+                        'fecha_recepcion' => $d->getFechaRecepcion(),
+                        'fecha_caducidad' => $d->getFechaCaducidad(),
+                        'punto_distribucion_id' => $d->getPuntoDistribucionId(),
+                        'observaciones' => $d->getObservaciones(),
+                        'estado' => $d->getEstado()
+                    ];
+                }, $donaciones_vista));
+            } else {
+                echo '[]';
+            }
+        ?>;
+        
+        // Funciones principales
+        function abrirFormularioNuevo() {
+            const modal = document.getElementById('modalDonacion');
+            const form = document.getElementById('formDonacion');
+            const titulo = document.getElementById('modalTitulo');
+            
+            if (!modal || !form || !titulo) {
+                alert('Error: No se encontraron elementos del modal');
+                return;
+            }
+            
+            form.reset();
+            form.action = 'index.php?controlador=Donacion&metodo=crear';
+            titulo.textContent = 'Registrar Nueva Donación';
+            
+            const estadoGroup = document.getElementById('estadoGroup');
+            if (estadoGroup) estadoGroup.style.display = 'none';
+            
+            const fechaRecepcionInput = document.getElementById('fecha_recepcion');
+            if (fechaRecepcionInput) {
+                const hoy = new Date();
+                const año = hoy.getFullYear();
+                const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+                const dia = String(hoy.getDate()).padStart(2, '0');
+                fechaRecepcionInput.value = `${año}-${mes}-${dia}`;
+            }
+            
+            modal.style.display = 'flex';
+            modal.classList.add('active');
+        }
+        
+        function cerrarModal() {
+            const modal = document.getElementById('modalDonacion');
+            if (modal) {
+                modal.style.display = 'none';
+                modal.classList.remove('active');
+            }
+        }
+        
+        function toggleFiltros() {
+            const panel = document.getElementById('filtrosPanel');
+            if (panel.style.display === 'none' || panel.style.display === '') {
+                panel.style.display = 'block';
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+        
+        function editarDonacion(id) {
+            const donacion = donacionesData.find(d => d.id === id);
+            if (!donacion) {
+                alert('Donación no encontrada');
+                return;
+            }
+            
+            const modal = document.getElementById('modalDonacion');
+            const form = document.getElementById('formDonacion');
+            const titulo = document.getElementById('modalTitulo');
+            
+            form.action = 'index.php?controlador=Donacion&metodo=actualizar';
+            titulo.textContent = 'Editar Donación';
+            
+            document.getElementById('donacion_id').value = donacion.id;
+            document.getElementById('nombre_donante').value = donacion.nombre_donante;
+            document.getElementById('tipo_producto').value = donacion.tipo_producto;
+            document.getElementById('cantidad').value = donacion.cantidad;
+            document.getElementById('unidad_medida').value = donacion.unidad_medida;
+            document.getElementById('fecha_recepcion').value = donacion.fecha_recepcion;
+            document.getElementById('fecha_caducidad').value = donacion.fecha_caducidad || '';
+            document.getElementById('punto_distribucion_id').value = donacion.punto_distribucion_id || '';
+            document.getElementById('observaciones').value = donacion.observaciones || '';
+            document.getElementById('estado').value = donacion.estado;
+            
+            document.getElementById('estadoGroup').style.display = 'flex';
+            
+            modal.style.display = 'flex';
+            modal.classList.add('active');
+        }
+        
+        function confirmarEliminar(id) {
+            const donacion = donacionesData.find(d => d.id === id);
+            if (!donacion) {
+                alert('Donación no encontrada');
+                return;
+            }
+            
+            const mensaje = `¿Está seguro que desea eliminar esta donación?\n\nDonante: ${donacion.nombre_donante}\nProducto: ${donacion.tipo_producto}\nCantidad: ${donacion.cantidad} ${donacion.unidad_medida}`;
+            
+            if (confirm(mensaje)) {
+                window.location.href = `index.php?controlador=Donacion&metodo=eliminar&id=${id}`;
+            }
+        }
+        
+        // Auto-ocultar mensajes
+        document.addEventListener('DOMContentLoaded', function() {
+            const mensaje = document.getElementById('mensaje');
+            if (mensaje) {
+                setTimeout(() => {
+                    mensaje.style.opacity = '0';
+                    mensaje.style.transition = 'opacity 0.5s';
+                    setTimeout(() => mensaje.remove(), 500);
+                }, 5000);
+            }
+            
+            // Cerrar modal al hacer clic fuera
+            const modal = document.getElementById('modalDonacion');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        cerrarModal();
+                    }
+                });
+            }
+            
+            // Validación del formulario
+            const form = document.getElementById('formDonacion');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    const cantidad = parseFloat(document.getElementById('cantidad').value);
+                    if (cantidad <= 0) {
+                        e.preventDefault();
+                        alert('La cantidad debe ser un número positivo mayor que 0');
+                        document.getElementById('cantidad').focus();
+                        return false;
+                    }
+                    
+                    const fechaRecepcion = document.getElementById('fecha_recepcion').value;
+                    const fechaCaducidad = document.getElementById('fecha_caducidad').value;
+                    
+                    if (fechaCaducidad && fechaRecepcion) {
+                        const recepcion = new Date(fechaRecepcion);
+                        const caducidad = new Date(fechaCaducidad);
+                        
+                        if (caducidad < recepcion) {
+                            e.preventDefault();
+                            alert('La fecha de caducidad no puede ser anterior a la fecha de recepción');
+                            document.getElementById('fecha_caducidad').focus();
+                            return false;
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Cerrar con ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                cerrarModal();
+            }
+        });
+    </script>
+</body>
+</html>

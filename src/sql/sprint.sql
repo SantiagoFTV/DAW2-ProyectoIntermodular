@@ -181,3 +181,37 @@ INSERT INTO puntos_distribucion (nombre, direccion, responsable, telefono, latit
 INSERT INTO puntos_distribucion (nombre, direccion, responsable, telefono, latitud, longitud, horario, descripcion, created_at) VALUES ('Badajoz', 'Farmacia Panchita', 'Mario Lopez', '3123123123', NULL, NULL, 'Lunes a Viernes 10am -  11pm', 'Frenesi', '2026-01-17 16:34:40');
 INSERT INTO puntos_distribucion (nombre, direccion, responsable, telefono, latitud, longitud, horario, descripcion, created_at) VALUES ('asda', 'asdas', 'asd', 'asdas', NULL, NULL, 'asdas', 'asdasd', '2026-01-17 16:42:48');
 INSERT INTO puntos_distribucion (nombre, direccion, responsable, telefono, latitud, longitud, horario, descripcion, created_at) VALUES ('asdasd', 'asdas', 'asdasd', 'asdasd', NULL, NULL, 'asdas', 'asdasd', '2026-01-17 16:46:32');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `donaciones`
+--
+
+CREATE TABLE IF NOT EXISTS `donaciones` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nombre_donante` varchar(255) NOT NULL,
+  `tipo_producto` varchar(255) NOT NULL,
+  `cantidad` int(11) NOT NULL,
+  `unidad_medida` varchar(50) DEFAULT 'unidades',
+  `fecha_recepcion` date NOT NULL,
+  `fecha_caducidad` date DEFAULT NULL,
+  `punto_distribucion_id` int(11) DEFAULT NULL,
+  `observaciones` text DEFAULT NULL,
+  `estado` varchar(50) DEFAULT 'recibido',
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `punto_distribucion_id` (`punto_distribucion_id`),
+  CONSTRAINT `donaciones_ibfk_1` FOREIGN KEY (`punto_distribucion_id`) REFERENCES `puntos_distribucion` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `donaciones`
+--
+
+INSERT IGNORE INTO `donaciones` (`nombre_donante`, `tipo_producto`, `cantidad`, `unidad_medida`, `fecha_recepcion`, `fecha_caducidad`, `punto_distribucion_id`, `observaciones`, `estado`) VALUES
+('Supermercados ABC', 'Arroz', 100, 'kg', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 365 DAY), 1, 'Donación mensual', 'recibido'),
+('Panadería El Pan Dorado', 'Pan de molde', 50, 'unidades', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 7 DAY), 1, 'Excedente semanal', 'recibido'),
+('Granja Santa Elena', 'Leche', 30, 'litros', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 5 DAY), 1, 'Donación especial', 'recibido');
+INSERT INTO puntos_distribucion (nombre, direccion, responsable, telefono, latitud, longitud, horario, descripcion, created_at) VALUES ('Maranguita', 'La casa de borja', 'Borja', '65445654', NULL, NULL, 'Lunes a Viernes 10am -  11pm', 'rorbar', '2026-01-21 21:06:36');

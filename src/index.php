@@ -57,7 +57,7 @@ if (!in_array($controlador, $controladores_publicos)) {
     if (Sesion::esUsuarioNormal() && !in_array($controlador, $usuario_normal_puede_acceder)) {
         echo "<div style='background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin: 20px;'>";
         echo "<h3>Acceso denegado</h3>";
-        echo "<p>No tienes permisos para acceder a este apartado. Solo los administradores pueden acceder a Voluntarios y Alertas de Caducidad.</p>";
+        echo "<p>No tienes permisos para acceder a este apartado. Solo los administradores pueden acceder a Donaciones, Voluntarios y Alertas de Caducidad.</p>";
         echo "<a href='index.php?controlador=Home&metodo=listar' style='color: #721c24; text-decoration: underline;'>Volver al inicio</a>";
         echo "</div>";
         exit;
