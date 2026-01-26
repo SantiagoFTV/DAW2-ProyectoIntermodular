@@ -64,7 +64,7 @@ class ControladorVoluntario{
             $voluntario = new Voluntario($nombre, $telefono, $horas_disponibles, $habilidades);
             $id = $voluntario->guardar();
             
-            $mensaje = "✅ El voluntario <strong>$nombre</strong> se registró correctamente (ID: $id).";
+            $mensaje = "El voluntario <strong>$nombre</strong> se registró correctamente (ID: $id).";
             $this->listarConMensaje($mensaje, 'success');
             
         } catch(Throwable $exception){
@@ -109,7 +109,7 @@ class ControladorVoluntario{
 
             require_once($this->config['dir_modelos'].'voluntario.php');
             Voluntario::eliminar($id);
-            $this->listarConMensaje('✅ Voluntario eliminado correctamente.', 'success');
+            $this->listarConMensaje('Voluntario eliminado correctamente.', 'success');
         } catch(Throwable $exception){
             if($this->config['debug']) {
                 echo "<div style='background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin: 20px;'>";

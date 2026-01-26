@@ -1,3 +1,8 @@
+<!--
+    Archivo: gestion_donaciones.html
+    Descripcion: Vista para registrar, filtrar y gestionar donaciones entrantes (solo administradores)
+    Incluye: estadisticas, busqueda, filtros avanzados y tabla de donaciones
+-->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -9,6 +14,9 @@
 </head>
 <body>
     <?php
+    /**
+     * Inicio de sesion y obtencion de datos del usuario
+     */
     require_once(__DIR__ . '/../../modelos/Sesion.php');
     Sesion::iniciarSesion();
     
@@ -25,7 +33,7 @@
             <div class="user-info">
                 <i class="fas fa-user-circle"></i>
                 <span><?php echo htmlspecialchars($usuario); ?></span>
-                <span class="role"><?php echo $esAdmin ? '👑 Admin' : '👤 Usuario'; ?></span>
+                <span class="role"><?php echo $esAdmin ? 'Admin' : 'Usuario'; ?></span>
             </div>
             <a href="index.php?controlador=Auth&metodo=logout" class="btn-logout">
                 <i class="fas fa-sign-out-alt"></i> Cerrar Sesión

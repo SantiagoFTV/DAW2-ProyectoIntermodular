@@ -1,3 +1,8 @@
+<!--
+    Archivo: gestion_beneficiarios.html
+    Descripcion: Vista para gestionar beneficiarios y asignaciones
+    Funcionalidad: búsqueda, alta/edición (solo admin), listado y métricas básicas
+-->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -74,6 +79,9 @@
 </head>
 <body>
     <?php
+    /**
+     * Arranque de sesion y datos del usuario autenticado
+     */
     require_once(__DIR__ . '/../../modelos/Sesion.php');
     Sesion::iniciarSesion();
     
@@ -90,7 +98,7 @@
             <div class="user-info">
                 <i class="fas fa-user-circle"></i>
                 <span><?php echo htmlspecialchars($usuario); ?></span>
-                <span class="role"><?php echo $esAdmin ? '👑 Admin' : '👤 Usuario'; ?></span>
+                <span class="role"><?php echo $esAdmin ? 'Admin' : 'Usuario'; ?></span>
             </div>
             <a href="index.php?controlador=Auth&metodo=logout" class="btn-logout">
                 <i class="fas fa-sign-out-alt"></i> Cerrar Sesión

@@ -1,3 +1,7 @@
+<!--
+    Archivo: home.html
+    Descripcion: Panel principal con accesos a modulos del sistema de donaciones
+-->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -243,7 +247,7 @@
             <div class="user-info">
                 <i class="fas fa-user-circle"></i>
                 <span><?php echo htmlspecialchars($usuario); ?></span>
-                <span class="role"><?php echo $esAdmin ? '👑 Admin' : '👤 Usuario'; ?></span>
+                <span class="role"><?php echo $esAdmin ? 'Admin' : 'Usuario'; ?></span>
             </div>
             <a href="index.php?controlador=Auth&metodo=logout" class="btn-logout">
                 <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
@@ -255,7 +259,7 @@
     <div class="container">
         <!-- HEADER -->
         <div class="header">
-            <h1>🍎 Banco de Alimentos</h1>
+            <h1>Banco de Alimentos</h1>
             <p>Gestión integral de donaciones y distribución</p>
         </div>
 
@@ -268,7 +272,7 @@
                 </div>
                 <h3>Beneficiarios</h3>
                 <p>Gestiona el registro y validación de beneficiarios</p>
-                <span class="access-level"><?php echo $esAdmin ? '✏️ Lectura/Escritura' : '👁️ Solo lectura'; ?></span>
+                <span class="access-level"><?php echo $esAdmin ? 'Lectura/Escritura' : 'Solo lectura'; ?></span>
             </a>
 
             <!-- PUNTOS DE DISTRIBUCIÓN -->
@@ -278,7 +282,7 @@
                 </div>
                 <h3>Puntos de Distribución</h3>
                 <p>Visualiza y gestiona centros de entrega</p>
-                <span class="access-level"><?php echo $esAdmin ? '✏️ Lectura/Escritura' : '👁️ Solo lectura'; ?></span>
+                <span class="access-level"><?php echo $esAdmin ? 'Lectura/Escritura' : 'Solo lectura'; ?></span>
             </a>
 
             <?php if ($esAdmin): ?>

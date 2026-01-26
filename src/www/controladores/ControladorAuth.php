@@ -1,6 +1,7 @@
 <?php
 /**
  * Controlador de Autenticación
+ * Gestiona login y logout del sistema
  */
 class ControladorAuth {
     private $config;
@@ -9,6 +10,9 @@ class ControladorAuth {
         $this->config = $config;
     }
 
+    /**
+     * Muestra el formulario de login y procesa credenciales
+     */
     public function login() {
         try {
             require_once($this->config['dir_modelos'] . 'Sesion.php');
@@ -22,14 +26,14 @@ class ControladorAuth {
                 $password = isset($_POST['password']) ? trim($_POST['password']) : '';
 
                 if ($usuario === '' || $password === '') {
-                    $mensaje = '❌ Usuario y contraseña son obligatorios.';
+                    $mensaje = ' Usuario y contraseña son obligatorios.';
                     $tipo_mensaje = 'error';
                 } else {
                     if (Sesion::login($usuario, $password)) {
                         header('Location: index.php?controlador=Home&metodo=listar');
                         exit;
                     } else {
-                        $mensaje = '❌ Usuario o contraseña incorrectos.';
+                        $mensaje = ' Usuario o contraseña incorrectos.';
                         $tipo_mensaje = 'error';
                     }
                 }
@@ -52,6 +56,9 @@ class ControladorAuth {
         }
     }
 
+    /**
+     * Cierra sesión y redirige al login
+     */
     public function logout() {
         require_once($this->config['dir_modelos'] . 'Sesion.php');
         Sesion::logout();

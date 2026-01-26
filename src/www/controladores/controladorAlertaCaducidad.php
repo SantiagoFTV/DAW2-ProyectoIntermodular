@@ -63,7 +63,7 @@ class ControladorAlertaCaducidad {
 
             $diasRestantes = $alerta->getDiasRestantes();
             $estado = $alerta->getEstado();
-            $mensaje = "✅ Alerta de caducidad registrada: <strong>{$nombre_producto}</strong> (Caducidad: {$fecha_caducidad}, Días restantes: {$diasRestantes}).";
+            $mensaje = "Alerta de caducidad registrada: <strong>{$nombre_producto}</strong> (Caducidad: {$fecha_caducidad}, Días restantes: {$diasRestantes}).";
             $this->listarConMensaje($mensaje, 'success');
         } catch (Throwable $exception) {
             if ($this->config['debug']) {
@@ -91,7 +91,7 @@ class ControladorAlertaCaducidad {
             require_once($this->config['dir_modelos'] . 'alertaCaducidad.php');
             AlertaCaducidad::eliminar($id);
 
-            $this->listarConMensaje('✅ Alerta de caducidad eliminada correctamente.', 'success');
+            $this->listarConMensaje('Alerta de caducidad eliminada correctamente.', 'success');
         } catch (Throwable $exception) {
             if ($this->config['debug']) {
                 $this->mostrarError($exception, 'Error al eliminar alerta');

@@ -1,3 +1,8 @@
+<!--
+    Archivo: gestion_puntos_distribucion.html
+    Descripcion: Vista para administrar puntos de distribucion (alta, listado, mapa)
+    Incluye: formulario (solo admin), tabla de puntos y mapa embebido
+-->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -74,6 +79,9 @@
 </head>
 <body>
     <?php
+    /**
+     * Inicio de sesion y obtencion de datos del usuario activo
+     */
     require_once(__DIR__ . '/../../modelos/Sesion.php');
     Sesion::iniciarSesion();
     
@@ -90,7 +98,7 @@
             <div class="user-info">
                 <i class="fas fa-user-circle"></i>
                 <span><?php echo htmlspecialchars($usuario); ?></span>
-                <span class="role"><?php echo $esAdmin ? '👑 Admin' : '👤 Usuario'; ?></span>
+                <span class="role"><?php echo $esAdmin ? 'Admin' : 'Usuario'; ?></span>
             </div>
             <a href="index.php?controlador=Auth&metodo=logout" class="btn-logout">
                 <i class="fas fa-sign-out-alt"></i> Cerrar Sesión

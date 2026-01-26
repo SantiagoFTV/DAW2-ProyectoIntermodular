@@ -1,4 +1,8 @@
 <?php
+/**
+ * Clase BD
+ * Encapsula la conexion PDO y operaciones basicas (CRUD)
+ */
 class BD {
     private $conexion;
 

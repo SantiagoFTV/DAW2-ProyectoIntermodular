@@ -1,3 +1,7 @@
+/**
+ * Script de gestion de puntos de distribucion
+ * Actualiza iframe de mapa y muestra detalles de cada punto
+ */
 document.addEventListener('DOMContentLoaded', function() {
     const mapFrame = document.getElementById('mapFrame');
     const mapDetails = document.getElementById('mapDetails');

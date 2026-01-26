@@ -1,5 +1,8 @@
-
-        document.addEventListener('DOMContentLoaded', function() {
+/**
+ * Script de gestion de voluntarios
+ * Maneja listado local, habilidades y confirmaciones en el cliente
+ */
+document.addEventListener('DOMContentLoaded', function() {
             // Elementos del DOM
             const volunteerForm = document.getElementById('volunteerForm');
             const volunteersList = document.getElementById('volunteersList');

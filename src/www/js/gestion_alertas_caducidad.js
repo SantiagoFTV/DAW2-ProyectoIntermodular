@@ -81,17 +81,17 @@ function actualizarPrediccion(e) {
 
     let estado = '';
     if (dias < 0) {
-        estado = `⚠️ Producto caducado (${Math.abs(dias)} días)`;
+        estado = `Producto caducado (${Math.abs(dias)} días)`;
     } else if (dias === 0) {
-        estado = '🔴 CRÍTICO - Vence hoy';
+        estado = 'CRÍTICO - Vence hoy';
     } else if (dias <= 3) {
-        estado = `🔴 CRÍTICO - ${dias} días`;
+        estado = `CRÍTICO - ${dias} días`;
     } else if (dias <= 7) {
-        estado = `🟠 URGENTE - ${dias} días`;
+        estado = `URGENTE - ${dias} días`;
     } else if (dias <= 15) {
-        estado = `🟡 PRÓXIMO - ${dias} días`;
+        estado = `PRÓXIMO - ${dias} días`;
     } else {
-        estado = `✅ OK - ${dias} días`;
+        estado = `OK - ${dias} días`;
     }
 
     // Mostrar tooltip

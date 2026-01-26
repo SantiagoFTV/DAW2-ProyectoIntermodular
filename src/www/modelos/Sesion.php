@@ -1,6 +1,7 @@
 <?php
 /**
- * Clase para manejar sesiones y autenticación
+ * Clase Sesion
+ * Maneja autenticación simple en memoria y comprobaciones de rol
  */
 class Sesion {
     const USUARIO_ADMIN = 'admin';

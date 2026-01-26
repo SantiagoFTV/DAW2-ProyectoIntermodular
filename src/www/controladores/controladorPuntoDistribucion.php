@@ -44,7 +44,7 @@ class ControladorPuntoDistribucion {
             $punto = new PuntoDistribucion($nombre, $direccion, $responsable, $telefono, null, null, $horario, $descripcion === '' ? null : $descripcion);
             $id = $punto->guardar();
 
-            $mensaje = "✅ Punto de distribución <strong>{$nombre}</strong> registrado (ID: {$id}).";
+            $mensaje = "Punto de distribución <strong>{$nombre}</strong> registrado (ID: {$id}).";
             $this->listarConMensaje($mensaje, 'success');
         } catch (Throwable $exception) {
             if ($this->config['debug']) {

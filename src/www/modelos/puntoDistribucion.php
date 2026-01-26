@@ -1,6 +1,7 @@
 <?php
 /**
  * Modelo PuntoDistribucion
+ * Gestiona centros de distribución y sincroniza con dump SQL
  */
 require_once __DIR__ . '/bd.php';
 

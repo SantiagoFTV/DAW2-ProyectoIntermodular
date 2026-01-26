@@ -1,15 +1,37 @@
+<!--
+    Archivo: gestion_alertas_caducidad.html
+    Descripción: Vista principal para la gestión de alertas de caducidad de productos
+    Autor: Sistema de Donaciones
+    Fecha: 2026
+    
+    Funcionalidad:
+    - Muestra estadísticas de productos próximos a caducar
+    - Permite registrar nuevas alertas de caducidad
+    - Lista y filtra alertas por estado (críticas, caducadas, próximas)
+    - Permite eliminar alertas del sistema
+    - Categoriza productos según días restantes hasta caducidad
+-->
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <!-- Configuración de codificación y viewport para diseño responsive -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alertas de Caducidad</title>
+    
+    <!-- Hoja de estilos específica para alertas de caducidad -->
     <link rel="stylesheet" href="<?php echo $config['dir_css']; ?>gestion_alertas_caducidad.css">
+    
+    <!-- Font Awesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Estilos inline para componentes de navegación y UI -->
     <style>
+        /* Estilos para el botón de retorno al menú principal */
         .menu-return { display: flex; justify-content: flex-end; margin: 12px 0 6px; }
         .menu-return .btn { box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
         
+        /* Barra de navegación superior con degradado verde */
         .navbar {
             background: linear-gradient(135deg, #2F855A 0%, #276749 100%);
             padding: 15px 30px;
@@ -20,6 +42,7 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
+        /* Logo y marca del sistema */
         .navbar-brand {
             display: flex;
             align-items: center;
@@ -28,12 +51,14 @@
             font-size: 18px;
         }
 
+        /* Contenedor de información de usuario */
         .navbar-user {
             display: flex;
             align-items: center;
             gap: 15px;
         }
 
+        /* Información del usuario actual (nombre y rol) */
         .user-info {
             display: flex;
             align-items: center;
@@ -41,6 +66,7 @@
             font-size: 14px;
         }
 
+        /* Badge que muestra el rol del usuario */
         .user-info .role {
             background: rgba(255,255,255,0.2);
             padding: 4px 10px;
@@ -49,6 +75,7 @@
             font-weight: 600;
         }
 
+        /* Botón de cerrar sesión con estilo de alerta roja */
         .btn-logout {
             background: #f8d7da;
             color: #721c24;
@@ -65,6 +92,7 @@
             text-decoration: none;
         }
 
+        /* Efecto hover del botón de cerrar sesión */
         .btn-logout:hover {
             background: #f5c6cb;
             transform: translateY(-2px);
@@ -74,23 +102,32 @@
 </head>
 <body>
     <?php
+    /**
+     * Gestión de sesión de usuario
+     * Verifica que el usuario esté autenticado y obtiene sus datos
+     */
     require_once(__DIR__ . '/../../modelos/Sesion.php');
     Sesion::iniciarSesion();
     
+    // Obtener datos del usuario actual
     $usuario = Sesion::obtenerUsuario();
     $rol = Sesion::obtenerRol();
     $esAdmin = Sesion::esAdmin();
     ?>
 
+    <!-- Barra de navegación superior con información del usuario -->
     <nav class="navbar">
+        <!-- Logo y título del sistema -->
         <div class="navbar-brand">
             <i class="fas fa-apple"></i> Sistema de Donaciones
         </div>
+        
+        <!-- Información del usuario y botón de cerrar sesión -->
         <div class="navbar-user">
             <div class="user-info">
                 <i class="fas fa-user-circle"></i>
                 <span><?php echo htmlspecialchars($usuario); ?></span>
-                <span class="role"><?php echo $esAdmin ? '👑 Admin' : '👤 Usuario'; ?></span>
+                <span class="role"><?php echo $esAdmin ? 'Admin' : 'Usuario'; ?></span>
             </div>
             <a href="index.php?controlador=Auth&metodo=logout" class="btn-logout">
                 <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
@@ -98,32 +135,45 @@
         </div>
     </nav>
 
+    <!-- Contenedor principal de la página -->
     <div class="container">
+        <!-- Botón de retorno al menú principal -->
         <div class="menu-return">
             <a class="btn ghost" href="index.php?controlador=Home&metodo=index" style="display:inline-flex; align-items:center; gap:6px;">
                 <i class="fas fa-house"></i> Volver al menú
             </a>
         </div>
+        
+        <!-- Encabezado de la página -->
         <header>
             <div class="org-logo"><i class="fas fa-exclamation-triangle"></i></div>
             <h1>Alertas de Caducidad</h1>
             <p>Monitorea productos próximos a caducar y optimiza su distribución.</p>
         </header>
 
+        <!-- Mostrar mensajes de éxito o error de operaciones -->
         <?php if (isset($mensaje_vista) && !empty($mensaje_vista)): ?>
             <div class="mensaje <?php echo isset($tipo_mensaje) && $tipo_mensaje === 'error' ? 'error' : ''; ?>">
                 <?php echo $mensaje_vista; ?>
             </div>
         <?php endif; ?>
 
-        <!-- Estadísticas -->
+        <!-- Panel de estadísticas de alertas -->
         <div class="stats-container">
             <?php
+            /**
+             * Cálculo de estadísticas de alertas
+             * Categoriza las alertas según días restantes:
+             * - Caducadas: días < 0
+             * - Críticas: días <= 3
+             * - Próximas: días <= 15
+             */
             require_once(__DIR__ . '/../../../config.php');
             $alertas_criticas = 0;
             $alertas_caducadas = 0;
             $alertas_proximas = 0;
             
+            // Contar alertas por categoría
             if (isset($alertas_vista)) {
                 foreach ($alertas_vista as $alerta) {
                     if ($alerta->getDiasRestantes() < 0) {
@@ -136,38 +186,54 @@
                 }
             }
             ?>
+            <!-- Tarjeta de productos ya caducados -->
             <div class="stat-card caducado">
                 <div class="stat-number"><?php echo $alertas_caducadas; ?></div>
                 <div class="stat-label">Caducados</div>
             </div>
+            
+            <!-- Tarjeta de productos en estado crítico (3 días o menos) -->
             <div class="stat-card critico">
                 <div class="stat-number"><?php echo $alertas_criticas; ?></div>
                 <div class="stat-label">Críticos (≤3 días)</div>
             </div>
+            
+            <!-- Tarjeta de productos próximos a caducar (15 días o menos) -->
             <div class="stat-card urgente">
                 <div class="stat-number"><?php echo $alertas_proximas; ?></div>
                 <div class="stat-label">Próximos (≤15 días)</div>
             </div>
+            
+            <!-- Tarjeta con el total de alertas registradas -->
             <div class="stat-card ok">
                 <div class="stat-number"><?php echo isset($alertas_vista) ? count($alertas_vista) : 0; ?></div>
                 <div class="stat-label">Total de alertas</div>
             </div>
         </div>
 
-        <!-- Filtros -->
+        <!-- Sección de filtros para categorizar las alertas -->
         <div class="filter-section">
             <div class="filter-buttons">
+                <!-- Formulario de filtros para clasificar alertas por estado -->
                 <form method="GET" style="display: inline;">
                     <input type="hidden" name="acciones" value="alertas">
+                    
+                    <!-- Botón para mostrar todas las alertas -->
                     <button type="submit" name="filtro" value="todas" class="filter-btn <?php echo (!isset($filtro_actual) || $filtro_actual === 'todas') ? 'active' : ''; ?>">
                         <i class="fas fa-list"></i> Todas
                     </button>
+                    
+                    <!-- Botón para filtrar alertas críticas -->
                     <button type="submit" name="filtro" value="criticas" class="filter-btn <?php echo (isset($filtro_actual) && $filtro_actual === 'criticas') ? 'active' : ''; ?>">
                         <i class="fas fa-fire"></i> Críticas
                     </button>
+                    
+                    <!-- Botón para filtrar productos ya caducados -->
                     <button type="submit" name="filtro" value="caducadas" class="filter-btn <?php echo (isset($filtro_actual) && $filtro_actual === 'caducadas') ? 'active' : ''; ?>">
                         <i class="fas fa-ban"></i> Caducadas
                     </button>
+                    
+                    <!-- Botón para filtrar alertas próximas -->
                     <button type="submit" name="filtro" value="proximas" class="filter-btn <?php echo (isset($filtro_actual) && $filtro_actual === 'proximas') ? 'active' : ''; ?>">
                         <i class="fas fa-clock"></i> Próximas
                     </button>
@@ -175,22 +241,27 @@
             </div>
         </div>
 
+        <!-- Layout de dos columnas: formulario de registro y lista de alertas -->
         <div class="layout">
-            <!-- Panel de Registro -->
+            <!-- Panel izquierdo: Formulario de registro de nuevas alertas -->
             <section class="form-panel">
                 <div class="form-header">
                     <h2><i class="fas fa-plus-circle"></i> Registrar Nueva Alerta</h2>
                     <p>Añade productos próximos a caducar al sistema.</p>
                 </div>
+                
+                <!-- Formulario para crear nueva alerta de caducidad -->
                 <form method="POST" class="form-alertas">
                     <input type="hidden" name="acciones" value="alertas">
                     <input type="hidden" name="metodo" value="crear">
                     
+                    <!-- Campo: Nombre del producto -->
                     <div class="form-group">
                         <label for="nombre_producto">Nombre del producto *</label>
                         <input type="text" id="nombre_producto" name="nombre_producto" placeholder="Ej: Leche entera" required>
                     </div>
 
+                    <!-- Campo: Punto de distribución donde se encuentra el producto -->
                     <div class="form-group">
                         <label for="punto_distribucion_id">Punto de distribución *</label>
                         <select id="punto_distribucion_id" name="punto_distribucion_id" required>
@@ -205,41 +276,49 @@
                         </select>
                     </div>
 
+                    <!-- Campo: Cantidad de unidades del producto -->
                     <div class="form-group">
                         <label for="cantidad">Cantidad *</label>
                         <input type="number" id="cantidad" name="cantidad" placeholder="Ej: 50" min="1" required>
                     </div>
 
+                    <!-- Campo: Fecha de caducidad del producto -->
                     <div class="form-group">
                         <label for="fecha_caducidad">Fecha de caducidad *</label>
                         <input type="date" id="fecha_caducidad" name="fecha_caducidad" required>
                     </div>
 
+                    <!-- Campo: Ubicación física del producto en el almacén -->
                     <div class="form-group">
                         <label for="ubicacion">Ubicación en almacén *</label>
                         <input type="text" id="ubicacion" name="ubicacion" placeholder="Ej: Estante A-3" required>
                     </div>
 
+                    <!-- Botón de envío del formulario -->
                     <button type="submit" class="btn-primary">
                         <i class="fas fa-save"></i> Registrar Alerta
                     </button>
                 </form>
             </section>
 
-            <!-- Panel de Alertas -->
+            <!-- Panel derecho: Lista de alertas registradas -->
             <section class="alerts-panel">
                 <div class="alerts-header">
                     <h2><i class="fas fa-bell"></i> Alertas Registradas</h2>
                     <p>Productos monitoreados en el sistema.</p>
                 </div>
 
+                <!-- Listado de alertas si existen -->
                 <?php if (isset($alertas_vista) && !empty($alertas_vista)): ?>
                     <div class="alerts-list">
+                        <!-- Iterar sobre cada alerta y mostrar su tarjeta -->
                         <?php foreach ($alertas_vista as $alerta): ?>
                             <div class="alert-card estado-<?php echo $alerta->getEstado(); ?>">
+                                <!-- Encabezado de la tarjeta con icono según estado -->
                                 <div class="alert-header-card">
                                     <div class="alert-icon">
                                         <?php
+                                        // Seleccionar icono según el estado de la alerta
                                         $estado = $alerta->getEstado();
                                         if ($estado === 'caducado') {
                                             echo '<i class="fas fa-ban"></i>';
@@ -254,6 +333,8 @@
                                         }
                                         ?>
                                     </div>
+                                    
+                                    <!-- Título y badge de estado de la alerta -->
                                     <div class="alert-title">
                                         <h3><?php echo htmlspecialchars($alerta->getNombreProducto()); ?></h3>
                                         <span class="estado-badge estado-<?php echo $alerta->getEstado(); ?>">
@@ -265,12 +346,16 @@
                                     </div>
                                 </div>
 
+                                <!-- Cuerpo de la tarjeta con información detallada -->
                                 <div class="alert-body">
                                     <div class="alert-info">
+                                        <!-- Fecha de caducidad del producto -->
                                         <div class="info-item">
                                             <strong>Caducidad:</strong>
                                             <span><?php echo date('d/m/Y', strtotime($alerta->getFechaCaducidad())); ?></span>
                                         </div>
+                                        
+                                        <!-- Días restantes hasta la caducidad -->
                                         <div class="info-item">
                                             <strong>Días restantes:</strong>
                                             <span class="dias-badge">
@@ -284,10 +369,14 @@
                                                 ?>
                                             </span>
                                         </div>
+                                        
+                                        <!-- Cantidad de unidades del producto -->
                                         <div class="info-item">
                                             <strong>Cantidad:</strong>
                                             <span><?php echo $alerta->getCantidad(); ?> unidades</span>
                                         </div>
+                                        
+                                        <!-- Ubicación del producto en el almacén -->
                                         <div class="info-item">
                                             <strong>Ubicación:</strong>
                                             <span><?php echo htmlspecialchars($alerta->getUbicacion()); ?></span>
@@ -295,9 +384,12 @@
                                     </div>
                                 </div>
 
+                                <!-- Pie de la tarjeta con acciones disponibles -->
                                 <div class="alert-footer">
+                                    <!-- Formulario para eliminar la alerta -->
                                     <form method="POST" action="index.php?controlador=AlertaCaducidad&metodo=eliminar" style="display: inline;">
                                         <input type="hidden" name="id" value="<?php echo $alerta->getId(); ?>">
+                                        <!-- Botón de eliminar con confirmación -->
                                         <button type="submit" class="btn-danger" onclick="return confirm('¿Deseas eliminar esta alerta?');">
                                             <i class="fas fa-trash-alt"></i> Eliminar
                                         </button>
@@ -307,6 +399,7 @@
                         <?php endforeach; ?>
                     </div>
                 <?php else: ?>
+                    <!-- Mensaje cuando no hay alertas registradas -->
                     <div class="empty-state">
                         <i class="fas fa-inbox"></i>
                         <p>No hay alertas de caducidad registradas.</p>
@@ -316,6 +409,7 @@
         </div>
     </div>
 
+    <!-- Script JavaScript para funcionalidad interactiva -->
     <script src="<?php echo $config['dir_js']; ?>gestion_alertas_caducidad.js"></script>
 </body>
 </html>

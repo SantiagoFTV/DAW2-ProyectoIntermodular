@@ -1,4 +1,8 @@
 <?php
+/**
+ * Modelo AlertaCaducidad
+ * Controla productos cercanos a caducar y calcula su estado
+ */
 require_once __DIR__ . '/bd.php';
 
 class AlertaCaducidad {
